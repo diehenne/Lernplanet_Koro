@@ -1,0 +1,73 @@
+import * as THREE from 'three';
+
+function rng(seed: number): () => number {
+  let s = seed;
+  return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+}
+
+function canvasTexture(size: number, paint: (g: CanvasRenderingContext2D, r: () => number) => void, seed: number): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d')!;
+  paint(g, rng(seed));
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+/** Helle Basis mit Grashalmen, Flecken und Blümchen; wird mit der Vertexfarbe multipliziert. */
+export function groundTexture(): THREE.CanvasTexture {
+  return canvasTexture(256, (g, r) => {
+    g.fillStyle = '#dcdcdc';
+    g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 70; i++) {
+      const x = r() * 256, y = r() * 256, rad = 8 + r() * 22;
+      g.fillStyle = r() < 0.5 ? 'rgba(255,255,255,0.1)' : 'rgba(90,90,90,0.05)';
+      for (const ox of [-256, 0, 256]) for (const oy of [-256, 0, 256]) {
+        g.beginPath();
+        g.arc(x + ox, y + oy, rad, 0, 7);
+        g.fill();
+      }
+    }
+    for (let i = 0; i < 1400; i++) {
+      const x = r() * 256, y = r() * 256, len = 3 + r() * 5, lean = (r() - 0.5) * 3;
+      g.strokeStyle = r() < 0.5 ? 'rgba(255,255,255,0.45)' : 'rgba(60,60,60,0.35)';
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(x, y);
+      g.lineTo(x + lean, y - len);
+      g.stroke();
+    }
+    for (let i = 0; i < 22; i++) {
+      g.fillStyle = ['#ffffff', '#fff3a0', '#ffd0e6'][i % 3];
+      g.beginPath();
+      g.arc(r() * 256, r() * 256, 1.4, 0, 7);
+      g.fill();
+    }
+  }, 7);
+}
+
+/** Feine Körnung für Figuren, Häuser, Felsen und Bäume. */
+export function grainTexture(): THREE.CanvasTexture {
+  return canvasTexture(64, (g, r) => {
+    g.fillStyle = '#f2f2f2';
+    g.fillRect(0, 0, 64, 64);
+    for (let i = 0; i < 260; i++) {
+      const v = 200 + Math.floor(r() * 55);
+      g.fillStyle = `rgba(${v},${v},${v},0.6)`;
+      g.fillRect(r() * 64, r() * 64, 2, 2);
+    }
+    g.strokeStyle = 'rgba(90,90,90,0.15)';
+    for (let i = 0; i < 12; i++) {
+      g.beginPath();
+      g.moveTo(r() * 64, r() * 64);
+      g.lineTo(r() * 64, r() * 64);
+      g.stroke();
+    }
+  }, 11);
+}
+
+let grain: THREE.CanvasTexture | null = null;
+export const sharedGrain = (): THREE.CanvasTexture => (grain ??= grainTexture());

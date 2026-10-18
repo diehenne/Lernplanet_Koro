@@ -1,0 +1,117 @@
+import { kindsFor, makeTask, pick, type Rng } from './generator';
+import { BIOME_CENTER, GRID, GRID_Z } from './layout';
+import { COINS, addCoins, coinBreakdown } from './money';
+import { MAX_LEVEL, MAX_STARS, OPS, START_LEVEL, START_STARS, type BuiltItem, type Op, type Profile, type Task } from './types';
+
+export function newProfile(id: string, name: string, avatar: string): Profile {
+  return {
+    id,
+    name,
+    avatar,
+    levels: { add: START_LEVEL, sub: START_LEVEL, mul: START_LEVEL, div: START_LEVEL },
+    stats: {},
+    recent: { add: [], sub: [], mul: [], div: [] },
+    stars: START_STARS,
+    outfit: {},
+    explored: '',
+    talked: {},
+    coins: {},
+    areas: [],
+    sudoku: 0,
+    areaLevels: {},
+    built: [],
+    inventory: {},
+    chests: {},
+    found: [],
+    tool: null,
+    nextUid: 1,
+  };
+}
+
+/** Ergänzt fehlende Felder (ältere Speicherstände) und hebt Anfangsstufen an. */
+export function normalizeProfile(p: Partial<Profile>): Profile {
+  const base = newProfile(p.id ?? `p${Date.now()}`, p.name ?? 'Held', p.avatar ?? '🦊');
+  for (const op of OPS) base.levels[op] = Math.min(MAX_LEVEL, Math.max(START_LEVEL, p.levels?.[op] ?? START_LEVEL));
+  base.stats = p.stats ?? {};
+  base.stars = Math.min(MAX_STARS, Math.max(1, p.stars ?? START_STARS));
+  base.outfit = p.outfit ?? {};
+  base.explored = p.explored ?? '';
+  // Die Karte wächst nach Norden: ältere, kürzere Stände werden oben aufgefüllt
+  const full = GRID * GRID_Z;
+  if (base.explored.length > 0 && base.explored.length < full && base.explored.length % GRID === 0) base.explored = '0'.repeat(full - base.explored.length) + base.explored;
+  base.sudoku = p.sudoku ?? 0;
+  base.areaLevels = p.areaLevels ?? {};
+  base.talked = p.talked ?? {};
+  base.coins = {};
+  for (const c of COINS) if (p.coins?.[c]) base.coins[c] = p.coins[c];
+  // Ältere Stände hatten nur eine Summe
+  const legacy = (p as { rupees?: number }).rupees;
+  if (legacy && !p.coins) addCoins(base.coins, coinBreakdown(legacy));
+  base.areas = p.areas ?? [];
+  base.inventory = p.inventory ?? {};
+  base.chests = p.chests ?? {};
+  base.found = p.found ?? [];
+  base.tool = p.tool ?? null;
+  base.nextUid = p.nextUid ?? 1;
+  // Ältere Stände: Stücke hatten Koordinaten relativ zur Region
+  for (const b of (p.built ?? []) as (Partial<BuiltItem> & { region?: Op })[]) {
+    const c = b.region ? BIOME_CENTER[b.region] : { x: 0, z: 0 };
+    const legacy = b.uid === undefined;
+    base.built.push({
+      uid: legacy ? base.nextUid++ : b.uid!,
+      item: b.item ?? 'flower',
+      x: (b.x ?? 0) + (legacy ? c.x : 0),
+      z: (b.z ?? 0) + (legacy ? c.z : 0),
+      ry: b.ry ?? 0,
+    });
+    base.nextUid = Math.max(base.nextUid, base.built[base.built.length - 1].uid + 1);
+  }
+  return base;
+}
+
+let lastKey = '';
+
+/** Wählt den Aufgabentyp gewichtet: Typen mit hoher Fehlerquote kommen häufiger. */
+export function nextTask(profile: Profile, op: Op, rng: Rng = Math.random): Task {
+  const level = profile.levels[op];
+  const weighted: string[] = [];
+  for (const k of kindsFor(op, level)) {
+    const s = profile.stats[k];
+    const total = s ? s.right + s.wrong : 0;
+    const errRate = total > 0 ? s.wrong / total : 0.3;
+    const weight = 1 + Math.round(errRate * 4);
+    for (let i = 0; i < weight; i++) weighted.push(k);
+  }
+  let task = makeTask(op, pick(rng, weighted), level, rng);
+  for (let i = 0; i < 6 && `${task.op}${task.a}:${task.b}` === lastKey; i++) {
+    task = makeTask(op, pick(rng, weighted), level, rng);
+  }
+  lastKey = `${task.op}${task.a}:${task.b}`;
+  return task;
+}
+
+/** Trägt ein Ergebnis ein und passt die Stufe an (Fenster von 5 Aufgaben: ≥4 richtig → hoch, ≤2 → runter). */
+export function recordResult(profile: Profile, task: Task, correct: boolean): 'up' | 'down' | null {
+  const s = (profile.stats[task.kind] ??= { right: 0, wrong: 0 });
+  if (correct) {
+    s.right++;
+    profile.stars = Math.min(MAX_STARS, profile.stars + 1);
+  } else s.wrong++;
+
+  const recent = (profile.recent[task.op] ??= []);
+  recent.push(correct);
+  if (recent.length < 5) return null;
+
+  const right = recent.filter(Boolean).length;
+  profile.recent[task.op] = [];
+  const lvl = profile.levels[task.op];
+  if (right >= 4 && lvl < MAX_LEVEL) {
+    profile.levels[task.op] = lvl + 1;
+    return 'up';
+  }
+  if (right <= 2 && lvl > 1) {
+    profile.levels[task.op] = lvl - 1;
+    return 'down';
+  }
+  return null;
+}
