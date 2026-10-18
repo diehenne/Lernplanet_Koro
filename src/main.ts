@@ -398,7 +398,7 @@ function enterWorld(where: string): void {
 function showMap(): void {
   world.paused = true;
   const p = current!;
-  overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="max-height:52vh;overflow:auto;border-radius:12px"><canvas id="mapc" width="248" height="${Math.round(248 * GRID_Z / GRID)}" style="width:100%;max-width:380px;display:block;margin:auto"></canvas></div>
+  overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="border-radius:12px"><canvas id="mapc" width="248" height="${Math.round(248 * GRID_Z / GRID)}" style="height:54vh;width:auto;max-width:100%;display:block;margin:auto"></canvas></div>
     <p class="hint">${de.map.legend}</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="savenow">💾 ${de.save.now}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
     <p class="hint">${p.areas.length ? AREAS.filter((a) => p.areas.includes(a.id)).map((a) => `${a.emoji} ${a.name}`).join(' · ') : de.areaHint}</p></div>`;
   const cv = document.getElementById('mapc') as HTMLCanvasElement;
@@ -443,8 +443,6 @@ function showMap(): void {
   g.strokeStyle = '#fff';
   g.lineWidth = 2;
   g.stroke();
-  const wrap = document.getElementById('mapwrap')!;
-  wrap.scrollTop = (mz(h.z) / cv.height) * wrap.scrollHeight - wrap.clientHeight / 2;
   document.getElementById('resume')!.addEventListener('click', closeModal);
   document.getElementById('travel')!.addEventListener('click', showRegions);
   document.getElementById('quit')!.addEventListener('click', () => { save(); showStart(); });
