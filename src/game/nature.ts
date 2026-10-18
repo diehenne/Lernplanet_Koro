@@ -250,7 +250,7 @@ export function createBush(): THREE.Group {
   return g;
 }
 
-function soft(w: number, h: number, d: number, color: number, bevel = 0.06): THREE.Mesh {
+export function soft(w: number, h: number, d: number, color: number, bevel = 0.06): THREE.Mesh {
   const shape = new THREE.Shape();
   shape.moveTo(-w / 2, -h / 2); shape.lineTo(w / 2, -h / 2); shape.lineTo(w / 2, h / 2); shape.lineTo(-w / 2, h / 2); shape.closePath();
   const geo = new THREE.ExtrudeGeometry(shape, { depth: d - bevel * 2, bevelEnabled: true, bevelSize: bevel, bevelThickness: bevel, bevelSegments: 3, curveSegments: 1 });

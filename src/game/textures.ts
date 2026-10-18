@@ -118,3 +118,27 @@ export function pathTexture(): THREE.CanvasTexture {
     }
   }, 33));
 }
+
+let plankTex: THREE.CanvasTexture | null = null;
+/** Holzdielen-Boden (wird mit Bodenfarbe multipliziert). */
+export function plankTexture(): THREE.CanvasTexture {
+  return (plankTex ??= canvasTexture(256, (g, r) => {
+    g.fillStyle = '#e8e8e8';
+    g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 8; i++) {
+      const v = 205 + Math.floor(r() * 50);
+      g.fillStyle = `rgb(${v},${v - 6},${v - 14})`;
+      g.fillRect(0, i * 32, 256, 31);
+      for (let k = 0; k < 14; k++) {
+        g.strokeStyle = 'rgba(90,60,30,0.14)';
+        g.beginPath();
+        const y = i * 32 + 3 + r() * 26;
+        g.moveTo(0, y); g.bezierCurveTo(80, y + (r() - 0.5) * 4, 170, y + (r() - 0.5) * 4, 256, y);
+        g.stroke();
+      }
+      g.fillStyle = 'rgba(60,40,20,0.45)';
+      g.fillRect(0, i * 32 + 31, 256, 1.5);
+      g.fillRect(r() * 256, i * 32, 1.5, 32);
+    }
+  }, 55));
+}
