@@ -170,23 +170,25 @@ function createGamepadNav(emit: (c: Cmd) => void) {
   const move = (dir: string, list: HTMLElement[]) => {
     if (!focused || !list.includes(focused)) return setFocus(list[0] ?? null);
     const c = focused.getBoundingClientRect();
-    const cx = c.left + c.width / 2, cy = c.top + c.height / 2;
+    const horiz = dir === 'left' || dir === 'right';
     let best: HTMLElement | null = null;
     let bestScore = Infinity;
     for (const el of list) {
       if (el === focused) continue;
       const r = el.getBoundingClientRect();
-      const dx = r.left + r.width / 2 - cx, dy = r.top + r.height / 2 - cy;
+      const dx = r.left + r.width / 2 - (c.left + c.width / 2), dy = r.top + r.height / 2 - (c.top + c.height / 2);
       const [main, side] = dir === 'left' ? [-dx, dy] : dir === 'right' ? [dx, dy] : dir === 'up' ? [-dy, dx] : [dy, dx];
+      // strikt in Pfeilrichtung: das Ziel muss wirklich dahinter liegen (Mitte jenseits der Mitte, ohne Überlappung der Kanten)
       if (main <= 4) continue;
-      const score = main + Math.abs(side) * (dir === 'up' || dir === 'down' ? 3 : 2);
+      const overlap = horiz
+        ? Math.min(c.bottom, r.bottom) - Math.max(c.top, r.top)
+        : Math.min(c.right, r.right) - Math.max(c.left, r.left);
+      const aligned = overlap > Math.min(horiz ? c.height : c.width, horiz ? r.height : r.width) * 0.3;
+      // zuerst Buttons in derselben Zeile/Spalte (nächster zuerst), sonst der in Richtung nächstliegende
+      const score = (aligned ? 0 : 1e6) + main + Math.abs(side) * (aligned ? 0.2 : 4);
       if (score < bestScore) { bestScore = score; best = el; }
     }
-    if (best) return setFocus(best);
-    // nichts in dieser Richtung: der Reihe nach weiter, damit nichts unerreichbar bleibt
-    const i = list.indexOf(focused);
-    const fwd = dir === 'right' || dir === 'down';
-    setFocus(list[(i + (fwd ? 1 : list.length - 1)) % list.length]);
+    if (best) setFocus(best);
   };
 
   const click = (sel: string): boolean => {
