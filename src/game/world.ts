@@ -452,6 +452,7 @@ export class World {
     this.buildAreas();
     this.addStationRing(WALL_STATION);
     this.addDecor(createBuilder(), WALL_STATION.x - 1.7, WALL_STATION.z - 1.0, 1.3, 0.7, 99, 'solid', 0.5);
+    this.addDecor(createHouse(), WALL_STATION.x - 9, WALL_STATION.z - 2, 1, 3.2, 99, 'solid', 0.6);
   }
 
   private buildPlaza(): void {
@@ -847,7 +848,7 @@ ${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
     for (let i = 0; i < 70; i++) {
       const ang = rng() * Math.PI * 2, d = 6 + rng() * (r - 8);
       const x = cx + Math.cos(ang) * d, z = cz + Math.sin(ang) * d;
-      if (Math.abs(x - cx) < 3.2 || stations.some((s) => Math.hypot(s.x - x, s.z - z) < 4) || Math.hypot(x - a.spawn.x, z - a.spawn.z) < 3.5) continue;
+      if (Math.abs(x - cx) < 3.2 || stations.some((s) => Math.hypot(s.x - x, s.z - z) < 4) || (a.id === 'sudoku' && Math.hypot(WALL_STATION.x - 5 - x, WALL_STATION.z - z) < 12) || Math.hypot(x - a.spawn.x, z - a.spawn.z) < 3.5) continue;
       if (i % 5 === 0) this.addDecor(createRock(rng, 0xb8c0c8), x, z, 0.8 + rng() * 0.6, 0.9, 0.7, 'solid', rng() * 6);
       else if (i % 5 === 1) this.addDecor(createMushroom(), x, z, 0.8 + rng(), 0.4, 0.5, 'solid', rng() * 6);
       else this.addDecor(createFruitTree(), x, z, 0.9 + rng() * 0.5, 0.7, 99, 'tree', rng() * 6);
