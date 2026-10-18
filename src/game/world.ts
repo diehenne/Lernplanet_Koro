@@ -18,6 +18,7 @@ import {
 import { PostFX } from './post';
 import { buildInterior, type Interior, type Obstacle } from './interior';
 
+const SKY_TINT = new THREE.Color(0.62, 0.8, 1.15);
 export type { Station } from '../core/layout';
 export type ActionKind = 'place' | 'open' | 'talk' | 'sword' | 'axe' | 'shovel' | null;
 export interface Ctx {
@@ -205,6 +206,8 @@ export class World {
   private companionAng = 0;
   private post!: PostFX;
   private motes!: THREE.Points;
+  private skyDome!: THREE.Mesh;
+  private skyU = { horizon: { value: new THREE.Color() }, zenith: { value: new THREE.Color() } };
   private moteBase = new Float32Array(150 * 3);
 
   constructor(canvas: HTMLCanvasElement, private input: InputState) {
@@ -238,6 +241,7 @@ export class World {
     this.scene.add(this.hero, this.companion);
 
     this.buildMotes();
+    this.buildSky();
     this.post = new PostFX(this.renderer, this.scene, this.camera);
     addEventListener('resize', () => this.resize());
     this.resize();
@@ -258,6 +262,28 @@ export class World {
     this.motes = new THREE.Points(geo, mat);
     this.motes.frustumCulled = false;
     this.scene.add(this.motes);
+  }
+
+  private buildSky(): void {
+    const mat = new THREE.ShaderMaterial({
+      uniforms: this.skyU,
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+      vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+      fragmentShader: `uniform vec3 horizon; uniform vec3 zenith; varying vec3 vP;
+        void main(){ float h = clamp(normalize(vP).y, 0.0, 1.0); gl_FragColor = vec4(mix(horizon, zenith, pow(h, 0.55)), 1.0); }`,
+    });
+    this.skyDome = new THREE.Mesh(new THREE.SphereGeometry(90, 24, 12), mat);
+    this.skyDome.renderOrder = -1;
+    this.skyDome.frustumCulled = false;
+    this.scene.add(this.skyDome);
+  }
+
+  private updateSky(): void {
+    this.skyDome.position.copy(this.camera.position);
+    this.skyU.horizon.value.copy(this.skyColor);
+    this.skyU.zenith.value.copy(this.skyColor).multiply(SKY_TINT);
   }
 
   private updateMotes(): void {
@@ -1488,6 +1514,7 @@ export class World {
         o.obj.rotation.x = Math.cos(this.t * 1.1 + o.z * 0.6) * 0.02;
       }
     }
+    this.updateSky();
     this.sun.position.set(p.x + 10, 18, p.z + 8);
     this.sun.target.position.set(p.x, this.gy, p.z);
 

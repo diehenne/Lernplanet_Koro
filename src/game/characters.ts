@@ -4,7 +4,17 @@ import { itemById } from '../core/shop';
 import type { Op } from '../core/types';
 
 export function toon(color: number): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0, bumpMap: sharedGrain(), bumpScale: 1.2 });
+  const m = new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0, bumpMap: sharedGrain(), bumpScale: 1.2 });
+  m.onBeforeCompile = (sh) => {
+    // Weiches Randlicht (Fresnel) und aufgehellte Schatten für den Cartoon-Look.
+    sh.fragmentShader = sh.fragmentShader.replace(
+      '#include <opaque_fragment>',
+      `float rim = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), 2.5);
+       outgoingLight += diffuseColor.rgb * rim * 0.35 + diffuseColor.rgb * 0.04;
+       #include <opaque_fragment>`,
+    );
+  };
+  return m;
 }
 
 export function mesh(geo: THREE.BufferGeometry, color: number): THREE.Mesh {
