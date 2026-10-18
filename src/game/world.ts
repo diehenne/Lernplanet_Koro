@@ -313,12 +313,12 @@ export class World {
     c.width = 16; c.height = 128;
     const g = c.getContext('2d')!;
     const grad = g.createLinearGradient(0, 0, 0, 128);
-    grad.addColorStop(0, 'rgba(255,244,200,0.9)');
+    grad.addColorStop(0, 'rgba(255,244,200,0.6)');
     grad.addColorStop(1, 'rgba(255,244,200,0)');
     g.fillStyle = grad;
     g.fillRect(0, 0, 16, 128);
     const tex = new THREE.CanvasTexture(c);
-    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
     this.shafts = new THREE.Group();
     for (let i = 0; i < 6; i++) {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1.2 + (i % 3) * 0.6, 14), mat);
