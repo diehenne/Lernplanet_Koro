@@ -403,7 +403,7 @@ function showMap(): void {
   world.paused = true;
   const p = current!;
   overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="border-radius:12px"><canvas id="mapc" width="${MAP_CW}" height="${MAP_CH}" style="width:100%;max-width:560px;height:auto;display:block;margin:auto"></canvas></div>
-    <p class="hint">${de.map.legend} · 📍 Du</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="savenow">💾 ${de.save.now}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
+    <p class="hint">${de.map.legend} · 📍 Du</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
     <p class="hint">${p.areas.length ? AREAS.filter((a) => p.areas.includes(a.id)).map((a) => `${a.emoji} ${a.name}`).join(' · ') : de.areaHint}</p></div>`;
   const cv = document.getElementById('mapc') as HTMLCanvasElement;
   const g = cv.getContext('2d')!;
@@ -422,7 +422,7 @@ function showMap(): void {
       g.fillRect(mx(x), mz(z), CELL * MAP_S + 0.5, CELL * MAP_S + 0.5);
     }
   }
-  // Bereiche: gestrichelter Kreis mit Namen (erst nach der Entdeckung)
+  // Bereiche: gestrichelter Kreis
   g.font = 'bold 16px sans-serif';
   g.textAlign = 'center';
   for (const a of AREAS) {
@@ -434,19 +434,7 @@ function showMap(): void {
     g.arc(mx(a.center.x), mz(a.center.z), a.radius * MAP_S, 0, 7);
     g.stroke();
     g.setLineDash([]);
-    const label = known ? `${a.emoji} ${a.name}` : '❓';
-    const w = g.measureText(label).width + 14;
-    g.fillStyle = 'rgba(30,25,15,0.75)';
-    g.fillRect(mx(a.center.x) - w / 2, mz(a.center.z - a.radius) + 6, w, 24);
-    g.fillStyle = '#fff';
-    g.fillText(label, mx(a.center.x), mz(a.center.z - a.radius) + 24);
   }
-  const hubLabel = '🏠 Marktplatz';
-  g.fillStyle = 'rgba(30,25,15,0.75)';
-  const hw = g.measureText(hubLabel).width + 14;
-  g.fillRect(mx(0) - hw / 2, mz(-HALF) + 4, hw, 24);
-  g.fillStyle = '#fff';
-  g.fillText(hubLabel, mx(0), mz(-HALF) + 22);
   g.textAlign = 'left';
   const heroP = world.hero.position;
   const dot = (x: number, z: number, col: string, r = 3): void => {
@@ -492,7 +480,6 @@ function showMap(): void {
   document.getElementById('resume')!.addEventListener('click', closeModal);
   document.getElementById('travel')!.addEventListener('click', showRegions);
   document.getElementById('quit')!.addEventListener('click', () => { save(); showStart(); });
-  document.getElementById('savenow')!.addEventListener('click', () => { save(); toast(de.save.saved); });
 }
 
 /** Weltportal: Ziele sind der Marktplatz und alle entdeckten Bereiche. */
