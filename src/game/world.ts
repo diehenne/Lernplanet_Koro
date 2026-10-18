@@ -209,7 +209,8 @@ export class World {
   private grass!: Grass;
   private motes!: THREE.Points;
   private skyDome!: THREE.Mesh;
-  private skyU = { horizon: { value: new THREE.Color() }, zenith: { value: new THREE.Color() } };
+  private shafts!: THREE.Group;
+  private skyU = { time: { value: 0 }, horizon: { value: new THREE.Color() }, zenith: { value: new THREE.Color() } };
   private moteBase = new Float32Array(150 * 3);
 
   constructor(canvas: HTMLCanvasElement, private input: InputState) {
@@ -244,6 +245,7 @@ export class World {
 
     this.buildMotes();
     this.buildSky();
+    this.buildShafts();
     this.grass = new Grass(heightAt, (x, z, out) => {
       blend(x, z, (op) => new THREE.Color(THEMES[op].ground), out, 14);
       out.multiplyScalar(1.3);
@@ -282,8 +284,22 @@ export class World {
       depthWrite: false,
       fog: false,
       vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: `uniform vec3 horizon; uniform vec3 zenith; varying vec3 vP;
-        void main(){ float h = clamp(normalize(vP).y, 0.0, 1.0); gl_FragColor = vec4(mix(horizon, zenith, pow(h, 0.55)), 1.0); }`,
+      fragmentShader: `uniform vec3 horizon; uniform vec3 zenith; uniform float time; varying vec3 vP;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+          return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
+        float fbm(vec2 p){ float a = 0.5, v = 0.0; for(int i=0;i<4;i++){ v += a*noise(p); p *= 2.03; a *= 0.5; } return v; }
+        void main(){
+          vec3 d = normalize(vP);
+          float h = clamp(d.y, 0.0, 1.0);
+          vec3 col = mix(horizon, zenith, pow(h, 0.55));
+          vec2 uv = d.xz / (d.y + 0.35) * 1.6 + vec2(time * 0.012, 0.0);
+          float c = smoothstep(0.52, 0.78, fbm(uv));
+          float fade = smoothstep(0.04, 0.3, d.y);
+          vec3 cloud = mix(vec3(1.0), horizon * 0.9 + 0.1, 0.25);
+          col = mix(col, cloud, c * fade * 0.85);
+          gl_FragColor = vec4(col, 1.0);
+        }`,
     });
     this.skyDome = new THREE.Mesh(new THREE.SphereGeometry(90, 24, 12), mat);
     this.skyDome.renderOrder = -1;
@@ -291,8 +307,42 @@ export class World {
     this.scene.add(this.skyDome);
   }
 
+  private buildShafts(): void {
+    const c = document.createElement('canvas');
+    c.width = 16; c.height = 128;
+    const g = c.getContext('2d')!;
+    const grad = g.createLinearGradient(0, 0, 0, 128);
+    grad.addColorStop(0, 'rgba(255,244,200,0.9)');
+    grad.addColorStop(1, 'rgba(255,244,200,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 16, 128);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+    this.shafts = new THREE.Group();
+    for (let i = 0; i < 6; i++) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(1.2 + (i % 3) * 0.6, 14), mat);
+      m.userData.a = i * 1.05;
+      this.shafts.add(m);
+    }
+    this.scene.add(this.shafts);
+  }
+
+  private updateShafts(): void {
+    const on = !this.inside && this.biome === 'add' && this.post.quality !== 'low';
+    this.shafts.visible = on;
+    if (!on) return;
+    const hp = this.hero.position;
+    for (const m of this.shafts.children) {
+      const a = m.userData.a as number;
+      m.position.set(hp.x + Math.cos(a * 2.3) * 7, this.gy + 6, hp.z + Math.sin(a * 2.3) * 7 - 2);
+      m.rotation.set(0, a, 0.35);
+      ((m as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = 0.16 + Math.sin(this.t * 0.5 + a) * 0.05;
+    }
+  }
+
   private updateSky(): void {
     this.skyDome.position.copy(this.camera.position);
+    this.skyU.time.value = this.t;
     this.skyU.horizon.value.copy(this.skyColor);
     this.skyU.zenith.value.copy(this.skyColor).multiply(SKY_TINT);
   }
@@ -1590,6 +1640,7 @@ ${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
       }
     }
     this.updateSky();
+    this.updateShafts();
     this.sun.position.set(p.x + 10, 18, p.z + 8);
     this.sun.target.position.set(p.x, this.gy, p.z);
 
