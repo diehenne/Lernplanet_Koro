@@ -214,6 +214,10 @@ function createGamepadNav(emit: (c: Cmd) => void) {
       if (b(14)) ax = -1; else if (b(15)) ax = 1;
       if (b(12)) ay = -1; else if (b(13)) ay = 1;
 
+      // Create/Share: Sprache an/aus, Touchpad: Musik an/aus (überall)
+      if (edge(8)) click('#mute');
+      if (edge(17)) click('#music');
+
       const list = buttons();
       if (list.length > 0) {
         let dir = '';
