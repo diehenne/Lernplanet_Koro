@@ -171,6 +171,12 @@ export const de = {
     solved: 'Geschafft! Das Sudoku ist gelöst! 🎉',
     done: (n: number) => `${n} × ${n} gelöst!`,
   },
+  wall: {
+    title: 'Zahlenmauer',
+    help: 'Jeder Stein ist die Summe der beiden Steine darunter. Wähle einen leeren Stein und tippe die Zahl.',
+    wrong: 'Hm, das stimmt nicht. Rechne noch einmal!',
+    solved: 'Super! Die Mauer steht! 🧱',
+  },
   dash: {
     title: 'Hund Bello: Rechen-Rennen',
     intro: 'Wuff! Löse so viele Aufgaben wie möglich in 20 Sekunden. Alle Rechenarten, Zahlen bis 20.',

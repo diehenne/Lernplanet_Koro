@@ -188,6 +188,12 @@ button.danger { background: #e0483e; box-shadow: 0 5px 0 #a02820; color: #fff; }
 .sc.by { border-bottom: 3px solid #4a3a7a; }
 .sudoku-pad { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
 .sudoku-pad button { min-width: 48px; min-height: 48px; font-size: 22px; }
+.wall { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; margin: 8px 0; }
+.brow { display: flex; gap: 4px; }
+.brick { min-width: 72px; height: 48px; font-size: 24px; font-weight: 700; padding: 0 8px; border-radius: 6px; background: #fff; color: #3b5bc4; border: 2px solid #b06a4a; box-shadow: none; min-height: 0; }
+.brick.given { background: #f3d9c4; color: #222; }
+.brick.ok { background: #cdeccb; color: #1f7a3a; }
+.brick.sel { background: #ffe9a0; outline: 3px solid #e0a82e; outline-offset: -3px; }
 .areacard { display: inline-block; margin: 6px; vertical-align: top; }
 .areacard .hubgo { margin-top: 0; display: block; width: 100%; }
 .sudoku-wrap { position: relative; display: inline-block; padding: 56px 64px; }

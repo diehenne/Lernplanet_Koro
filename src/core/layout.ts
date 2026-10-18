@@ -18,7 +18,7 @@ export function biomeAt(x: number, z: number, prev?: Op): Op {
   return south ? (east ? 'div' : 'mul') : east ? 'sub' : 'add';
 }
 
-export type StationId = 'calc' | 'gap' | 'shop' | 'eng' | 'ger' | 'gen' | 'sud' | 'puz' | 'portal' | 'dog';
+export type StationId = 'calc' | 'gap' | 'shop' | 'eng' | 'ger' | 'gen' | 'sud' | 'puz' | 'portal' | 'dog' | 'wall';
 /** Stellen der Lernbereiche (nicht Mathe) mit Fachgebiet. */
 export const AREA_STATION: Record<string, StationId> = { english: 'eng', german: 'ger', general: 'gen', sudoku: 'sud', puzzle: 'puz' };
 export interface Station {
@@ -135,6 +135,8 @@ export const AREAS: Area[] = [
 ];
 /** Bello, der Hund auf dem Marktplatz (Rechen-Rennen). */
 export const DOG_STATION: Station = { id: 'dog', op: 'add', x: -2.2, z: -3.2 };
+/** Bauarbeiter auf dem Sudoku-Hügel (Zahlenmauer). */
+export const WALL_STATION: Station = { id: 'wall', op: 'add', x: -SPACING + 6, z: 4 };
 export const HUB_PORTAL = { x: 0, z: -9.5 };
 export const areaById = (id: string): Area | undefined => AREAS.find((a) => a.id === id);
 export const areaAt = (x: number, z: number): Area | undefined => AREAS.find((a) => Math.hypot(x - a.center.x, z - a.center.z) < a.radius);

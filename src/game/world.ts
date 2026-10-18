@@ -4,14 +4,14 @@ import { groundTexture, groundBump, pathTexture } from './textures';
 import { sfx } from '../ui/sfx';
 import type { Op, Profile } from '../core/types';
 import { OPS } from '../core/types';
-import { AREAS, BIOME_CENTER, DOG_STATION, ENGLISH, GRID, GRID_Z, X0, X1, Z0, Z1, areaAt, areaById, areaStations, portalStations, HUB_SPAWN, biomeAt, cellOf, extraStations, heightAt, villageOf, type Station } from '../core/layout';
+import { AREAS, BIOME_CENTER, DOG_STATION, WALL_STATION, ENGLISH, GRID, GRID_Z, X0, X1, Z0, Z1, areaAt, areaById, areaStations, portalStations, HUB_SPAWN, biomeAt, cellOf, extraStations, heightAt, villageOf, type Station } from '../core/layout';
 import { chestLoot, treasureLoot, type Loot } from '../core/loot';
 import { earn } from '../core/money';
 import { addItem, bagSize, itemById, pickUp, place } from '../core/shop';
 import { de } from '../i18n/de';
 import type { Cmd, InputState } from './input';
 import {
-  createBridgeSign, createBuildItem, createCactus, createDeadTree, createDog, createPuppy, createFruitTree, createHero, createHole, createKorok,
+  createBridgeSign, createBuilder, createBuildItem, createCactus, createDeadTree, createDog, createPuppy, createFruitTree, createHero, createHole, createKorok,
   createLily, createMountain, createMushroom, createRock, createSignpost, createSlime, createSparkle, createStall,
   createTablet, createTool, createTree, createHouse, applyOutfit, toon,
 } from './characters';
@@ -450,6 +450,8 @@ export class World {
     this.addDecor(dog, DOG_STATION.x - 1.7, DOG_STATION.z - 1.0, 1.3, 0.7, 99, 'solid', 0.5);
     this.buildNorthStrip();
     this.buildAreas();
+    this.addStationRing(WALL_STATION);
+    this.addDecor(createBuilder(), WALL_STATION.x - 1.7, WALL_STATION.z - 1.0, 1.3, 0.7, 99, 'solid', 0.5);
   }
 
   private buildPlaza(): void {
@@ -871,7 +873,7 @@ ${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
     for (let i = 0; i < pos.count; i++) pos.setZ(i, heightAt(s.x + pos.getX(i), s.z - pos.getY(i)) + 0.07);
     const ring = new THREE.Mesh(
       geo,
-      new THREE.MeshBasicMaterial({ color: s.id === 'shop' ? 0x66ddff : s.id === 'portal' ? 0xcc66ff : s.id === 'eng' ? 0xff6677 : s.id === 'ger' ? 0xffaa44 : s.id === 'gen' ? 0x44ddaa : s.id === 'sud' ? 0xaa88ff : s.id === 'puz' ? 0xff7799 : s.id === 'dog' ? 0xffb066 : 0xffe066, side: THREE.DoubleSide, transparent: true, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+      new THREE.MeshBasicMaterial({ color: s.id === 'shop' ? 0x66ddff : s.id === 'portal' ? 0xcc66ff : s.id === 'eng' ? 0xff6677 : s.id === 'ger' ? 0xffaa44 : s.id === 'gen' ? 0x44ddaa : s.id === 'sud' ? 0xaa88ff : s.id === 'puz' ? 0xff7799 : s.id === 'dog' ? 0xffb066 : s.id === 'wall' ? 0xff8844 : 0xffe066, side: THREE.DoubleSide, transparent: true, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
     );
     ring.rotation.x = -Math.PI / 2;
     ring.position.set(s.x, 0, s.z);

@@ -572,6 +572,30 @@ export function createDog(): THREE.Group {
   return outline(g);
 }
 
+/** Bauarbeiter mit Helm und kleiner Zahlenmauer. */
+export function createBuilder(): THREE.Group {
+  const g = new THREE.Group();
+  const skin = 0xf0c39a;
+  g.add(at(ellipsoid(0.42, 1, 1.2, 0.85, 0xf2a22e), 0, 0.85, 0));
+  g.add(at(ellipsoid(0.44, 1.02, 0.35, 0.88, 0x3b5bc4), 0, 0.35, 0));
+  for (const x of [-0.2, 0.2]) g.add(at(ellipsoid(0.14, 1, 1.5, 1, 0x3b5bc4), x, 0.2, 0.02));
+  for (const x of [-0.5, 0.5]) g.add(at(ellipsoid(0.12, 0.9, 1.6, 0.9, 0xf2a22e), x, 0.9, 0.05));
+  const head = new THREE.Group();
+  head.add(ellipsoid(0.32, 1, 0.95, 0.95, skin));
+  head.add(at(ellipsoid(0.36, 1, 0.6, 1, 0xffd23a), 0, 0.17, 0));
+  head.add(at(ellipsoid(0.42, 1, 0.12, 1.1, 0xffd23a), 0, 0.1, 0.05));
+  head.add(at(ellipsoid(0.07, 1, 0.8, 0.8, 0xd98a6a), 0, -0.04, 0.3));
+  for (const x of [-0.12, 0.12]) head.add(at(eyeBall(0.045, 0x2b1b12), x, 0.0, 0.27));
+  head.add(at(ellipsoid(0.2, 1.1, 0.45, 0.6, 0x6b4a2b), 0, -0.2, 0.2));
+  g.add(at(head, 0, 1.65, 0));
+  const bricks: [number, number, number, number][] = [[-0.42, 0.1, 0xd1644a, 0], [0.0, 0.1, 0xe0795c, 0], [-0.21, 0.32, 0xc4523a, 0]];
+  const wall = new THREE.Group();
+  for (const [x, y, col] of bricks) wall.add(at(mesh(new THREE.BoxGeometry(0.4, 0.2, 0.25), col), x, y, 0));
+  g.add(at(wall, 1.0, 0, 0.3));
+  g.userData = { head };
+  return outline(g);
+}
+
 export function createStall(): THREE.Group {
   const g = new THREE.Group();
   g.add(at(mesh(new THREE.BoxGeometry(2.2, 0.8, 0.8), 0xb97a3e), 0, 0.4, 0.6));

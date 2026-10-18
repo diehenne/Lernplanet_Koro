@@ -1,4 +1,4 @@
-import { AREAS, areaById, DOG_STATION, HALF, X0, X1, Z0, Z1, CELL, HUB_SPAWN, biomeAt, areaStations, AREA_STATION, portalStations, extraStations, heightAt, villageOf } from './core/layout';
+import { AREAS, areaById, DOG_STATION, WALL_STATION, HALF, X0, X1, Z0, Z1, CELL, HUB_SPAWN, biomeAt, areaStations, AREA_STATION, portalStations, extraStations, heightAt, villageOf } from './core/layout';
 import { balance } from './core/money';
 import { rewardChips } from './ui/coins';
 import { itemById } from './core/shop';
@@ -18,6 +18,7 @@ import { openTalk } from './ui/riddle';
 import { runEnglishRound, speakEnglish } from './ui/english';
 import { areaLevel } from './core/riddles';
 import { runSudoku } from './ui/sudoku';
+import { runWall } from './ui/wall';
 import type { RiddleKind } from './core/riddles';
 import { ENGLISH_KINDS } from './core/riddles';
 
@@ -225,6 +226,7 @@ function allStations() {
   return [
     ...OPS.flatMap((op) => [...villageOf(op).stations, ...extraStations(op)]),
     DOG_STATION,
+    ...(found.includes('sudoku') ? [WALL_STATION] : []),
     ...portalStations().filter((st) => !st.area || found.includes(st.area)),
     ...AREAS.filter((a) => found.includes(a.id)).flatMap(areaStations),
   ];
@@ -612,6 +614,22 @@ world.onStation = (s) => {
   if (s.id === 'portal') { sfx('portal'); return showPortal(); }
   if (s.id === 'dog') {
     runDash({ root: overlay, profile: current, save, onChange: updateHud, onClose: closeModal });
+    return;
+  }
+  if (s.id === 'wall') {
+    runWall({
+      root: overlay,
+      profile: current,
+      save,
+      onChange: updateHud,
+      onDone: (r) => {
+        if (r) idle = 0;
+        if (!r) return closeModal();
+        overlay.innerHTML = `<div class="panel center"><h2>🧱</h2><p>${de.wall.solved}</p>
+          <p class="chip">${rewardChips(r.earned)}${r.star ? ' · +1 ⭐' : ''}</p><br><button id="ok">${de.toWorld}</button></div>`;
+        document.getElementById('ok')!.addEventListener('click', closeModal);
+      },
+    });
     return;
   }
   if (s.id === 'sud') {
