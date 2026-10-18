@@ -47,7 +47,9 @@ cat > "$PLIST" <<EOF
 EOF
 
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" "$PLIST"
 sleep 2
+launchctl bootstrap "gui/$(id -u)" "$PLIST" 2>/dev/null || launchctl load -w "$PLIST"
+launchctl kickstart -k "gui/$(id -u)/$LABEL" 2>/dev/null || true
+sleep 3
 IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo '<Mac-IP>')"
 echo "Läuft! Auf Tablet/Handy im WLAN öffnen: https://$IP:5179"
