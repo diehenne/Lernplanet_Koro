@@ -1,6 +1,6 @@
 #!/bin/bash
 # Richtet auf dem Mac einen Autostart ein: Das Spiel läuft nach jedem Login/Neustart
-# automatisch im WLAN unter http://<Mac-IP>:4173
+# automatisch im WLAN unter https://<Mac-IP>:5179
 # Deinstallieren: tools/autostart-mac.sh remove
 set -e
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -33,9 +33,11 @@ cat > "$PLIST" <<EOF
     <string>preview</string>
     <string>--host</string>
     <string>--port</string>
-    <string>4173</string>
+    <string>5179</string>
     <string>--strictPort</string>
   </array>
+  <key>EnvironmentVariables</key>
+  <dict><key>LAN_HTTPS</key><string>1</string></dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>StandardOutPath</key><string>/tmp/lernplanet-koro.log</string>
@@ -48,4 +50,4 @@ launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 sleep 2
 IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo '<Mac-IP>')"
-echo "Läuft! Auf Tablet/Handy im WLAN öffnen: http://$IP:4173"
+echo "Läuft! Auf Tablet/Handy im WLAN öffnen: https://$IP:5179"
