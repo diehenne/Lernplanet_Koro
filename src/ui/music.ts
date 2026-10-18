@@ -571,6 +571,8 @@ const THEMES: Record<Theme, ThemeDef> = {
 
 function tick(): void {
   const c = ctx!;
+  // Controller-Tasten gelten nicht bei jedem Browser als Klick: immer wieder versuchen
+  if (enabled && c.state !== 'running') void c.resume();
   while (nextBarTime < c.currentTime + 1.2) {
     if (wanted !== current) {
       current = wanted;

@@ -308,21 +308,28 @@ function hud(): void {
     <span><span class="chip" id="rupees">${GEM} ${balance(p)}</span><span class="chip" id="stars">⭐ ${p.stars}/${MAX_STARS}</span>
     <span class="chip" id="tool" title="${de.inv.inHand}"></span>
     <button class="alt" id="bag" title="${de.inv.title}">🎒<span class="g tri">△</span></button>
-    <button class="alt" id="mute" title="${de.mute}">${speechOn() ? '🔊' : '🔇'}<span class="g">Create</span></button>
-    <button class="alt" id="music" title="${de.musicToggle}">${musicOn() ? '🎵' : '🔕'}<span class="g">Pad</span></button>
+    <button class="alt" id="mute" title="${de.mute}">${speechOn() || musicOn() ? '🔊' : '🔇'}<span class="g">Create</span></button>
+    <button class="alt" id="music" title="${de.musicToggle}">${musicOn() ? '🎵' : '🔕'}</button>
     <button class="alt" id="gfx" title="Grafik">${GFX[world.quality] ?? '✨'}</button>
     <button class="alt" id="map" title="${de.map.title}">🗺️<span class="g">Options</span></button></span></div>
     <div id="actions"><button class="alt hidden" id="a-pick" title="${de.actions.pickup}">✋</button>
     <button id="a-act" class="hidden"></button>
     <button class="alt" id="a-run" title="${de.actions.run}">🏃<span class="g">R1</span></button>
     <button id="a-jump" title="${de.actions.jump}">⤒<span class="g x">✕</span></button></div>`;
-  document.getElementById('mute')!.addEventListener('click', (e) => {
-    setSpeech(!speechOn());
-    (e.currentTarget as HTMLElement).firstChild!.textContent = speechOn() ? '🔊' : '🔇';
+  const setIcons = (): void => {
+    document.getElementById('mute')!.firstChild!.textContent = speechOn() || musicOn() ? '🔊' : '🔇';
+    document.getElementById('music')!.firstChild!.textContent = musicOn() ? '🎵' : '🔕';
+  };
+  // Create/Mute: alles an oder alles aus
+  document.getElementById('mute')!.addEventListener('click', () => {
+    const on = !(speechOn() || musicOn());
+    setSpeech(on);
+    setMusic(on);
+    setIcons();
   });
-  document.getElementById('music')!.addEventListener('click', (e) => {
+  document.getElementById('music')!.addEventListener('click', () => {
     setMusic(!musicOn());
-    (e.currentTarget as HTMLElement).firstChild!.textContent = musicOn() ? '🎵' : '🔕';
+    setIcons();
   });
   document.getElementById('gfx')!.addEventListener('click', (e) => {
     const order = ['low', 'med', 'high'] as const;

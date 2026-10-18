@@ -215,16 +215,11 @@ function createGamepadNav(emit: (c: Cmd) => void) {
       if (b(14)) ax = -1; else if (b(15)) ax = 1;
       if (b(12)) ay = -1; else if (b(13)) ay = 1;
 
-      // Create oder L3: Sprache an/aus; Touchpad oder R3: Musik an/aus (überall)
+      // Create oder L3: Ton (Sprache und Musik) gemeinsam an/aus (überall)
       const anyNow = gp.buttons.some((x) => x.pressed);
       if (anyNow && !anyDown) window.dispatchEvent(new CustomEvent('padpress'));
       anyDown = anyNow;
-      const extra = gp.mapping === 'standard' ? [17, 18, 19] : [13, 17];
-      let eMusic = false;
-      for (const i of extra) if (edge(i)) eMusic = true;
-      const eSpeech = edge(8), eSpeech2 = edge(10), eMusic2 = edge(11);
-      if (eSpeech || eSpeech2) click('#mute');
-      if (eMusic || eMusic2) click('#music');
+      if (edge(8) || edge(10)) click('#mute');
 
       const list = buttons();
       if (list.length > 0) {
