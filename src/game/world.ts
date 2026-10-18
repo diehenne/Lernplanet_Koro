@@ -15,6 +15,7 @@ import {
   createLily, createMountain, createMushroom, createRock, createSignpost, createSlime, createSparkle, createStall,
   createTablet, createTool, createTree, createHouse, applyOutfit, toon,
 } from './characters';
+import { PostFX } from './post';
 import { buildInterior, type Interior, type Obstacle } from './interior';
 
 export type { Station } from '../core/layout';
@@ -202,10 +203,13 @@ export class World {
   private tmp2 = new THREE.Vector3();
   private heroPrev = new THREE.Vector3();
   private companionAng = 0;
+  private post!: PostFX;
+  private motes!: THREE.Points;
+  private moteBase = new Float32Array(150 * 3);
 
   constructor(canvas: HTMLCanvasElement, private input: InputState) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio, 2), 3));
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -233,14 +237,47 @@ export class World {
     this.companion.position.set(HUB_SPAWN.x + 1.5, 0, HUB_SPAWN.z - 1);
     this.scene.add(this.hero, this.companion);
 
+    this.buildMotes();
+    this.post = new PostFX(this.renderer, this.scene, this.camera);
     addEventListener('resize', () => this.resize());
     this.resize();
     this.renderer.setAnimationLoop(() => this.frame());
   }
 
+  // Schwebende Pollen/Glühwürmchen rund um den Helden.
+  private buildMotes(): void {
+    const n = 150;
+    for (let i = 0; i < n; i++) {
+      this.moteBase[i * 3] = (Math.random() - 0.5) * 30;
+      this.moteBase[i * 3 + 1] = Math.random() * 5;
+      this.moteBase[i * 3 + 2] = (Math.random() - 0.5) * 30;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    const mat = new THREE.PointsMaterial({ color: 0xfff3b0, size: 0.09, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+    this.motes = new THREE.Points(geo, mat);
+    this.motes.frustumCulled = false;
+    this.scene.add(this.motes);
+  }
+
+  private updateMotes(): void {
+    const pos = this.motes.geometry.attributes.position as THREE.BufferAttribute;
+    const hp = this.hero.position;
+    const t = this.t;
+    this.motes.visible = !this.inside;
+    for (let i = 0; i < pos.count; i++) {
+      const b = this.moteBase;
+      const x = ((b[i * 3] + t * 0.15 - hp.x + 15) % 30 + 30) % 30 - 15;
+      const z = ((b[i * 3 + 2] + t * 0.1 - hp.z + 15) % 30 + 30) % 30 - 15;
+      pos.setXYZ(i, hp.x + x + Math.sin(t * 0.7 + i) * 0.4, this.gy + 0.4 + b[i * 3 + 1] + Math.sin(t * 0.9 + i * 1.7) * 0.3, hp.z + z + Math.cos(t * 0.6 + i) * 0.4);
+    }
+    pos.needsUpdate = true;
+  }
+
   private resize(): void {
     const w = innerWidth, h = innerHeight;
     this.renderer.setSize(w, h, false);
+    this.post?.resize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
   }
@@ -1151,7 +1188,7 @@ export class World {
     this.animate(dt, moving);
     this.updateEnvironment(dt);
     this.updateContext();
-    this.renderer.render(this.scene, this.camera);
+    this.post.render(dt);
   }
 
   /** Bewegt den Helden; zu steile Hänge (Felswände) sind unpassierbar, an Kanten wird entlanggerutscht. */
@@ -1442,6 +1479,14 @@ export class World {
     if (this.frameNo % 6 === 0 && !this.inside) {
       for (const d of this.decor) d.obj.visible = Math.abs(d.x - p.x) < CULL && Math.abs(d.z - p.z) < CULL && Math.hypot(d.x - p.x, d.z - p.z) < CULL;
       for (const s of this.spots) if (this.profile?.found.includes(s.id)) s.obj.visible = false;
+    }
+    if (!this.inside) {
+      this.updateMotes();
+      for (const o of this.obstacles) {
+        if (o.kind !== 'tree' || !o.obj || !o.obj.visible) continue;
+        o.obj.rotation.z = Math.sin(this.t * 1.3 + o.x * 0.7) * 0.02;
+        o.obj.rotation.x = Math.cos(this.t * 1.1 + o.z * 0.6) * 0.02;
+      }
     }
     this.sun.position.set(p.x + 10, 18, p.z + 8);
     this.sun.target.position.set(p.x, this.gy, p.z);
