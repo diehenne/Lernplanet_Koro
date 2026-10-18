@@ -15,6 +15,7 @@ import {
   createLily, createMountain, createMushroom, createRock, createSignpost, createSlime, createSparkle, createStall,
   createTablet, createTool, createTree, createHouse, applyOutfit, toon,
 } from './characters';
+import { createFlower, createBush, createLantern, createBunting } from './nature';
 import { PostFX } from './post';
 import { Grass } from './grass';
 import { buildInterior, type Interior, type Obstacle } from './interior';
@@ -439,6 +440,7 @@ export class World {
       this.koroks.push(k);
     }
 
+    this.buildPlaza();
     for (const op of OPS) this.buildBiome(op);
     this.buildBorder();
     for (const st of portalStations()) this.buildPortal(st);
@@ -448,6 +450,30 @@ export class World {
     this.addDecor(dog, DOG_STATION.x - 1.7, DOG_STATION.z - 1.0, 1.3, 0.7, 99, 'solid', 0.5);
     this.buildNorthStrip();
     this.buildAreas();
+  }
+
+  private buildPlaza(): void {
+    const rng = seeded(4242);
+    const N = 8, R = 6.9;
+    const pt = (i: number) => [Math.cos((i / N) * Math.PI * 2 + 0.2) * R, Math.sin((i / N) * Math.PI * 2 + 0.2) * R] as const;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2 + 0.2;
+      const [x, z] = pt(i);
+      this.addDecor(createLantern(), x, z, 1, 0.2, 99, 'solid', Math.PI - a);
+      const [x2, z2] = pt(i + 1);
+      if (i % 2 === 0) {
+        const b = createBunting(Math.hypot(x2 - x, z2 - z));
+        b.position.set((x + x2) / 2, heightAt((x + x2) / 2, (z + z2) / 2) - 0.2, (z + z2) / 2);
+        b.rotation.y = -Math.atan2(z2 - z, x2 - x);
+        this.worldGroup.add(b);
+      }
+      const am = a + Math.PI / N;
+      for (let k = 0; k < 4; k++) {
+        const f = k % 3 === 2 ? createBush() : createFlower();
+        const rr = R - 0.3 + (rng() - 0.5) * 0.9, aa = am + (rng() - 0.5) * 0.3;
+        this.addDecor(f, Math.cos(aa) * rr, Math.sin(aa) * rr, 0.7 + rng() * 0.5, 0, 99, undefined, rng() * 6);
+      }
+    }
   }
 
   private addDecor(obj: THREE.Object3D, x: number, z: number, scale = 1, r = 0, h = 99, kind?: 'tree' | 'solid', rot = 0): Obstacle | null {

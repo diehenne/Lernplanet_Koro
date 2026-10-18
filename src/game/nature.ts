@@ -385,3 +385,32 @@ export function createDeadTree(rng: () => number): THREE.Group {
   for (let i = 0; i < 4; i++) branch(h * (0.5 + i * 0.1), i * 1.9 + rng(), 0.9 + rng() * 0.5, 1);
   return g;
 }
+
+/** Laterne mit leuchtendem Glas (Bloom macht den Schein). */
+export function createLantern(): THREE.Group {
+  const g = new THREE.Group();
+  const dark = 0x4a3a2c;
+  g.add(put(soft(0.16, 1.9, 0.16, dark, 0.03), 0, 0.95, 0));
+  g.add(put(soft(0.5, 0.08, 0.1, dark, 0.02), 0.2, 1.85, 0));
+  const glass = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffe08a }));
+  glass.userData.noOutline = true;
+  glass.position.set(0.4, 1.68, 0);
+  g.add(glass);
+  g.add(put(soft(0.3, 0.06, 0.3, dark, 0.02), 0.4, 1.9, 0));
+  return g;
+}
+
+/** Wimpelkette zwischen zwei Punkten. */
+export function createBunting(len: number): THREE.Group {
+  const g = new THREE.Group();
+  const cols = [0xe8546b, 0xffd24d, 0x4f9ee8, 0x6cc24a];
+  const n = Math.round(len / 0.6);
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n;
+    const flag = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.4, 3), toon(cols[i % 4]));
+    flag.rotation.x = Math.PI;
+    flag.position.set((t - 0.5) * len, 2.1 - Math.sin(t * Math.PI) * 0.45, 0);
+    g.add(flag);
+  }
+  return g;
+}
