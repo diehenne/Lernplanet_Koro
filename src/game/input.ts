@@ -219,7 +219,7 @@ function createGamepadNav(emit: (c: Cmd) => void) {
       const anyNow = gp.buttons.some((x) => x.pressed);
       if (anyNow && !anyDown) window.dispatchEvent(new CustomEvent('padpress'));
       anyDown = anyNow;
-      if (edge(8) || edge(10)) click('#mute');
+      if (edge(8) || edge(10)) click('#music');
 
       const list = buttons();
       if (list.length > 0) {
