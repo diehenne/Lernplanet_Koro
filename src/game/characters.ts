@@ -596,6 +596,39 @@ export function createBuilder(): THREE.Group {
   return outline(g);
 }
 
+/** Baustelle: Platte, fertige Wände, eine halb gemauerte Wand, Gerüst und Material. Vorderseite = +z. */
+export function createConstructionSite(): THREE.Group {
+  const g = new THREE.Group();
+  const box = (w: number, h: number, d: number, col: number, x: number, y: number, z: number): void => {
+    g.add(at(mesh(new THREE.BoxGeometry(w, h, d), col), x, y, z));
+  };
+  box(6.4, 0.2, 5.2, 0xb8b4aa, 0, 0.1, 0);
+  box(6, 2.4, 0.35, 0xe8d8b8, 0, 1.4, -2.3);
+  box(0.35, 1.9, 4.4, 0xe8d8b8, -2.9, 1.15, 0);
+  box(1.4, 0.5, 0.36, 0x6a8fb8, -1.2, 1.5, -2.3);
+  // Unfertige Wand rechts: unten fest, darüber Ziegelreihen, die nach vorn treppenartig enden
+  box(0.35, 0.8, 4.4, 0xc4523a, 2.9, 0.6, 0);
+  const rows = [8, 6, 4, 2];
+  rows.forEach((n, r) => {
+    for (let i = 0; i < n; i++) {
+      const off = r % 2 ? 0.22 : 0;
+      g.add(at(mesh(new THREE.BoxGeometry(0.35, 0.22, 0.5), i % 3 ? 0xd1644a : 0xc4523a), 2.9, 1.11 + r * 0.23, -2.1 + i * 0.52 + off));
+    }
+  });
+  // Gerüst an der Vorderseite
+  for (const x of [-2.6, 0.2, 2.6]) g.add(at(mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.6, 8), 0x9a9a9a), x, 1.8, 2.9));
+  for (const y of [1.2, 2.4]) {
+    box(5.6, 0.1, 0.1, 0x9a9a9a, 0, y, 2.9);
+    box(5.8, 0.12, 0.9, 0xb98a4a, 0, y + 0.06, 2.45);
+  }
+  // Dachbalken und Material
+  for (const x of [-1.6, 0, 1.6]) box(0.18, 0.18, 4.6, 0x9a6a3a, x, 2.7, 0);
+  box(1.0, 0.25, 0.7, 0xb98a4a, 1.0, 0.32, 1.5);
+  for (let k = 0; k < 3; k++) box(0.8, 0.22, 0.45, 0xd1644a, 1.0, 0.56 + k * 0.22, 1.5);
+  g.add(at(mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.4, 12), 0x4a7ab8), -1.5, 0.4, 1.8));
+  return outline(g);
+}
+
 export function createStall(): THREE.Group {
   const g = new THREE.Group();
   g.add(at(mesh(new THREE.BoxGeometry(2.2, 0.8, 0.8), 0xb97a3e), 0, 0.4, 0.6));
