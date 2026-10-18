@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { sharedGrain } from './textures';
-import { createBush, createFlower, createTree } from './nature';
-export { createTree, createFruitTree, createMushroom, createRock, createMountain, createLily } from './nature';
+import { createBush, createFlower, createHouse, createTree } from './nature';
+export { createHouse, createCactus, createDeadTree, createTree, createFruitTree, createMushroom, createRock, createMountain, createLily } from './nature';
 import { itemById } from '../core/shop';
 import type { Op } from '../core/types';
 
@@ -403,36 +403,6 @@ export function createKorok(variant = 0): THREE.Group {
   return outline(g);
 }
 
-export function createCactus(rng: () => number): THREE.Group {
-  const g = new THREE.Group();
-  const h = 1.4 + rng() * 1.0;
-  const green = 0x4f9e5a;
-  g.add(at(mesh(new THREE.CapsuleGeometry(0.22, h, 6, 10), green), 0, h / 2 + 0.2, 0));
-  for (const s of [-1, 1]) {
-    if (rng() < 0.3) continue;
-    const arm = mesh(new THREE.CapsuleGeometry(0.13, 0.5, 6, 8), green);
-    arm.position.set(s * 0.38, h * 0.6, 0);
-    g.add(arm);
-    const up = mesh(new THREE.CapsuleGeometry(0.12, 0.4, 6, 8), green);
-    up.position.set(s * 0.52, h * 0.6 + 0.35, 0);
-    g.add(up);
-  }
-  return g;
-}
-
-export function createDeadTree(rng: () => number): THREE.Group {
-  const g = new THREE.Group();
-  const h = 2 + rng() * 1.2;
-  g.add(at(mesh(new THREE.CylinderGeometry(0.12, 0.28, h, 14), 0x5a4a3a), 0, h / 2, 0));
-  for (let i = 0; i < 3; i++) {
-    const b = mesh(new THREE.CylinderGeometry(0.04, 0.09, 1, 10), 0x5a4a3a);
-    b.position.set(Math.cos(i * 2.1) * 0.3, h * (0.55 + i * 0.12), Math.sin(i * 2.1) * 0.3);
-    b.rotation.set(Math.sin(i * 2.1) * 0.9, 0, -Math.cos(i * 2.1) * 0.9);
-    g.add(b);
-  }
-  return g;
-}
-
 export function createTablet(): THREE.Group {
   const g = new THREE.Group();
   g.add(at(mesh(new THREE.BoxGeometry(1.6, 2.2, 0.35), 0x9a9aa6), 0, 1.1, 0));
@@ -505,20 +475,6 @@ export function createBuildItem(id: string): THREE.Group {
     case 'house':
       return createHouse();
   }
-  return g;
-}
-
-export function createHouse(): THREE.Group {
-  const g = new THREE.Group();
-  g.add(at(mesh(new THREE.BoxGeometry(2.4, 1.6, 2), 0xf2e2b8), 0, 0.8, 0));
-  const roof = at(mesh(new THREE.ConeGeometry(1.9, 1.2, 8), 0xc24a3a), 0, 2.2, 0);
-  roof.rotation.y = Math.PI / 4;
-  g.add(roof);
-  g.add(at(mesh(new THREE.BoxGeometry(0.5, 0.95, 0.12), 0x8a5a2b), 0, 0.48, 1.0));
-  g.add(at(mesh(new THREE.SphereGeometry(0.04, 12, 12), 0xffd24d), 0.15, 0.5, 1.08));
-  g.add(at(mesh(new THREE.BoxGeometry(0.45, 0.45, 0.1), 0x9ad8ff), 0.8, 1.0, 1.02));
-  g.add(at(mesh(new THREE.BoxGeometry(0.45, 0.45, 0.1), 0x9ad8ff), -0.8, 1.0, 1.02));
-  g.add(at(mesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), 0x9a9aa6), 0.7, 2.5, -0.3));
   return g;
 }
 

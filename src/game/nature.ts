@@ -249,3 +249,139 @@ export function createBush(): THREE.Group {
   }
   return g;
 }
+
+function soft(w: number, h: number, d: number, color: number, bevel = 0.06): THREE.Mesh {
+  const shape = new THREE.Shape();
+  shape.moveTo(-w / 2, -h / 2); shape.lineTo(w / 2, -h / 2); shape.lineTo(w / 2, h / 2); shape.lineTo(-w / 2, h / 2); shape.closePath();
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: d - bevel * 2, bevelEnabled: true, bevelSize: bevel, bevelThickness: bevel, bevelSegments: 3, curveSegments: 1 });
+  geo.translate(0, 0, -(d - bevel * 2) / 2);
+  return setup(new THREE.Mesh(geo, toon(color)));
+}
+
+function gableRoof(w: number, d: number, rise: number, color: number): THREE.Group {
+  const g = new THREE.Group();
+  const half = w / 2 + 0.25;
+  const slope = Math.hypot(half, rise);
+  const ang = Math.atan2(rise, half);
+  for (const s of [-1, 1]) {
+    const slab = soft(slope + 0.05, 0.1, d + 0.5, color, 0.03);
+    slab.position.set(s * half / 2, rise / 2, 0);
+    slab.rotation.z = -s * ang;
+    g.add(slab);
+  }
+  // Giebeldreiecke
+  const tri = new THREE.Shape();
+  tri.moveTo(-w / 2, 0); tri.lineTo(w / 2, 0); tri.lineTo(0, rise - 0.02); tri.closePath();
+  for (const s of [-1, 1]) {
+    const m = setup(new THREE.Mesh(new THREE.ShapeGeometry(tri), toon(0xf2e2b8)), false);
+    m.position.z = s * (d / 2 + 0.01);
+    if (s < 0) m.rotation.y = Math.PI;
+    g.add(m);
+  }
+  const ridge = soft(0.14, 0.14, d + 0.55, 0x9c3a2e, 0.04);
+  ridge.position.y = rise;
+  g.add(ridge);
+  return g;
+}
+
+export function createHouse(): THREE.Group {
+  const g = new THREE.Group();
+  const wall = 0xf2e2b8, wood = 0x8a5a2b;
+  g.add(put(soft(2.6, 0.3, 2.2, 0x9a9aa6, 0.05), 0, 0.15, 0));
+  g.add(put(soft(2.4, 1.5, 2.0, wall, 0.07), 0, 1.05, 0));
+  // Fachwerk
+  for (const x of [-1.15, 1.15]) for (const z of [-0.95, 0.95]) g.add(put(soft(0.12, 1.5, 0.12, wood, 0.02), x, 1.05, z));
+  g.add(put(soft(2.5, 0.1, 2.1, wood, 0.02), 0, 1.78, 0));
+  const roof = gableRoof(2.4, 2.0, 1.05, 0xc24a3a);
+  roof.position.y = 1.82;
+  g.add(roof);
+  // Schornstein
+  g.add(put(soft(0.36, 0.9, 0.36, 0x9a8f86, 0.04), 0.7, 2.55, -0.45));
+  g.add(put(soft(0.44, 0.1, 0.44, 0x7d746c, 0.02), 0.7, 3.05, -0.45));
+  // Tür mit Rahmen, Stufe und Knauf
+  g.add(put(soft(0.68, 1.1, 0.1, 0x6e4624, 0.03), 0, 0.85, 1.02));
+  const door = soft(0.5, 0.95, 0.12, wood, 0.03);
+  door.position.set(0, 0.78, 1.04);
+  g.add(door);
+  g.add(put(blob(0.04, 0xffd24d, 1, { lump: 0.03, detail: 1 }), 0.14, 0.78, 1.14));
+  g.add(put(soft(0.8, 0.1, 0.3, 0x9a9aa6, 0.03), 0, 0.35, 1.2));
+  // Fenster mit Rahmen, Läden, Blumenkasten und warmem Glimmen
+  for (const x of [-0.82, 0.82]) {
+    g.add(put(soft(0.58, 0.58, 0.08, 0xfff4dc, 0.03), x, 1.15, 1.02));
+    const glass = setup(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.06), new THREE.MeshStandardMaterial({ color: 0xffe9a8, emissive: 0xffb84a, emissiveIntensity: 0.55, roughness: 0.3 })), false);
+    glass.position.set(x, 1.15, 1.07);
+    g.add(glass);
+    g.add(put(soft(0.04, 0.42, 0.04, 0xfff4dc, 0.01), x, 1.15, 1.1));
+    g.add(put(soft(0.42, 0.04, 0.04, 0xfff4dc, 0.01), x, 1.15, 1.1));
+    for (const s of [-1, 1]) g.add(put(soft(0.18, 0.56, 0.05, 0x3f8f6a, 0.02), x + s * 0.38, 1.15, 1.04));
+    g.add(put(soft(0.6, 0.14, 0.18, wood, 0.02), x, 0.82, 1.14));
+    for (let i = 0; i < 4; i++) g.add(put(blob(0.08, [0xff6b9a, 0xffd24d, 0xffffff, 0xff8c5a][i], i + x * 10, { lump: 0.1, detail: 1 }), x - 0.21 + i * 0.14, 0.95, 1.14));
+  }
+  // Efeu / Busch an der Ecke
+  g.add(put(blob(0.3, 0x3f9e4a, 5, { lump: 0.25, squash: 0.9 }), -1.3, 0.3, 0.7));
+  return g;
+}
+
+export function createCactus(rng: () => number): THREE.Group {
+  const g = new THREE.Group();
+  const seed = Math.floor(rng() * 1000);
+  const h = 1.4 + rng() * 1.0;
+  const green = 0x4f9e5a;
+  const mk = (r: number, len: number, color: number): THREE.Mesh => {
+    const geo = new THREE.CapsuleGeometry(r, len, 8, 16);
+    const p = geo.attributes.position;
+    const cols = new Float32Array(p.count * 3);
+    for (let i = 0; i < p.count; i++) {
+      const a = Math.atan2(p.getZ(i), p.getX(i));
+      const rib = 1 + Math.cos(a * 7) * 0.07; // Rippen
+      p.setX(i, p.getX(i) * rib);
+      p.setZ(i, p.getZ(i) * rib);
+      const k = 0.85 + Math.cos(a * 7) * 0.12 + (p.getY(i) / (len + 2 * r)) * 0.2;
+      cols.set([k, k, k], i * 3);
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    geo.computeVertexNormals();
+    return setup(new THREE.Mesh(geo, vcolMat(color)));
+  };
+  g.add(put(mk(0.24, h, green), 0, h / 2 + 0.24, 0));
+  for (const s of [-1, 1]) {
+    if (rng() < 0.25) continue;
+    const y = h * (0.45 + rng() * 0.2);
+    const out = put(mk(0.13, 0.35, green), s * 0.42, y, 0);
+    out.rotation.z = -s * 1.45;
+    g.add(out);
+    g.add(put(mk(0.12, 0.35 + rng() * 0.3, green), s * 0.6, y + 0.3, 0));
+  }
+  const bloom = blob(0.1, 0xff6b9a, seed, { lump: 0.1, squash: 0.7, detail: 1 });
+  g.add(put(bloom, 0.05, h + 0.5, 0));
+  g.add(put(blob(0.18, 0xd9a35a, seed + 1, { lump: 0.3, squash: 0.5, detail: 1 }), 0.45, 0.12, 0.3));
+  return g;
+}
+
+export function createDeadTree(rng: () => number): THREE.Group {
+  const g = new THREE.Group();
+  const h = 2 + rng() * 1.2;
+  const col = 0x5a4a3a;
+  g.add(put(trunk(h, 0.3, 0.1, col, 0.25), 0, h / 2, 0));
+  const branch = (y: number, a: number, len: number, depth: number): void => {
+    const b = trunk(len, 0.09 * (depth + 1) / 2 + 0.02, 0.02, col, 0.05);
+    b.position.set(Math.cos(a) * 0.12, y, Math.sin(a) * 0.12);
+    b.rotation.order = 'YXZ';
+    b.rotation.y = -a;
+    b.rotation.z = -0.9;
+    b.geometry.translate(0, len / 2, 0);
+    b.position.y = y;
+    g.add(b);
+    if (depth > 0) {
+      const sub = trunk(len * 0.6, 0.04, 0.01, col, 0.02);
+      sub.geometry.translate(0, len * 0.3, 0);
+      sub.rotation.order = 'YXZ';
+      sub.position.set(Math.cos(a) * (0.12 + len * 0.45), y + len * 0.5, Math.sin(a) * (0.12 + len * 0.45));
+      sub.rotation.y = -a;
+      sub.rotation.z = 0.5;
+      g.add(sub);
+    }
+  };
+  for (let i = 0; i < 4; i++) branch(h * (0.5 + i * 0.1), i * 1.9 + rng(), 0.9 + rng() * 0.5, 1);
+  return g;
+}
