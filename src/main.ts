@@ -424,19 +424,6 @@ function showMap(): void {
       g.fillRect(mx(x), mz(z), CELL * MAP_S + 0.5, CELL * MAP_S + 0.5);
     }
   }
-  // Bereiche: gestrichelter Kreis
-  g.font = 'bold 16px sans-serif';
-  g.textAlign = 'center';
-  for (const a of AREAS) {
-    const known = p.areas.includes(a.id);
-    g.setLineDash([8, 6]);
-    g.lineWidth = 2;
-    g.strokeStyle = known ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.25)';
-    g.beginPath();
-    g.arc(mx(a.center.x), mz(a.center.z), a.radius * MAP_S, 0, 7);
-    g.stroke();
-    g.setLineDash([]);
-  }
   g.textAlign = 'left';
   const heroP = world.hero.position;
   const dot = (x: number, z: number, col: string, r = 3): void => {
