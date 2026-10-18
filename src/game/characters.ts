@@ -56,8 +56,23 @@ export function outline<T extends THREE.Object3D>(root: T): T {
   return root;
 }
 
+/** Backt eine weiche Verschattung (unten dunkler, oben heller) in die Vertexfarben. */
+function bakeShade(geo: THREE.BufferGeometry): void {
+  const n = geo.attributes.normal;
+  if (!n || geo.attributes.color) return;
+  const cols = new Float32Array(n.count * 3);
+  for (let i = 0; i < n.count; i++) {
+    const k = 0.8 + 0.28 * (n.getY(i) * 0.5 + 0.5);
+    cols[i * 3] = cols[i * 3 + 1] = cols[i * 3 + 2] = k;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+}
+
 export function mesh(geo: THREE.BufferGeometry, color: number): THREE.Mesh {
-  const m = new THREE.Mesh(geo, toon(color));
+  bakeShade(geo);
+  const mat = toon(color);
+  mat.vertexColors = true;
+  const m = new THREE.Mesh(geo, mat);
   m.castShadow = true;
   return m;
 }
@@ -88,7 +103,16 @@ function taper(pts: [number, number, number][], r0: number, r1: number, color: n
 }
 
 function eyeBall(r: number, color: number): THREE.Mesh {
-  return new THREE.Mesh(new THREE.SphereGeometry(r, 24, 24), new THREE.MeshBasicMaterial({ color }));
+  const e = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 24), new THREE.MeshBasicMaterial({ color }));
+  e.userData.noOutline = true;
+  // Glanzpunkt, damit der Blick lebendig wirkt (nur an dunklen Pupillen).
+  if (color < 0x404040) {
+    const hl = new THREE.Mesh(new THREE.SphereGeometry(r * 0.32, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    hl.position.set(r * 0.3, r * 0.38, r * 0.82);
+    hl.userData.noOutline = true;
+    e.add(hl);
+  }
+  return e;
 }
 
 export interface HeroParts {
