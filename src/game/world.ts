@@ -486,6 +486,12 @@ export class World {
     this.worldGroup.add(obj);
     this.decor.push({ obj, x, z });
     if (r <= 0) return null;
+    if (h < 2) {
+      // Standfläche = tatsächliche Oberkante des Modells (leicht abgesenkt wegen der unebenen Form)
+      obj.updateMatrixWorld(true);
+      const top = new THREE.Box3().setFromObject(obj).max.y - obj.position.y;
+      if (top > 0.05) h = top * 0.92;
+    }
     const o: Obstacle = { x, z, r: r * scale, h, kind: kind ?? 'solid', obj };
     this.obstacles.push(o);
     return o;
