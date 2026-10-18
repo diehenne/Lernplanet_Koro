@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const RADIUS = 15;
+const RADIUS = 24;
 const CELL = 0.5;
 
 const hash = (x: number, z: number, k: number): number => {
@@ -25,7 +25,7 @@ export class Grass {
     private heightAt: (x: number, z: number) => number,
     private colorAt: (x: number, z: number, out: THREE.Color) => void,
     private skip: (x: number, z: number) => number,
-    max = 3600,
+    max = 9000,
   ) {
     const geo = new THREE.BufferGeometry();
     // Drei Halme pro Büschel, jeweils beidseitig (Gegenwinkel) damit das Licht nicht kippt.
@@ -83,7 +83,7 @@ export class Grass {
         if (d > RADIUS || hash(ix, iz, 3) < 0.35) continue;
         const clear = this.skip(wx, wz);
         if (clear < 0) continue;
-        const fade = Math.min(1, (RADIUS - d) / 4) * Math.min(1, clear / 1.5);
+        const fade = Math.min(1, (RADIUS - d) / 6) * Math.min(1, clear / 1.5);
         const h = (0.3 + hash(ix, iz, 4) * 0.35) * fade;
         this.p.set(wx, this.heightAt(wx, wz), wz);
         this.s.set(1, h, 1);
