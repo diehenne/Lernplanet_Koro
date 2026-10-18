@@ -29,7 +29,7 @@ export class PostFX {
   private composer: EffectComposer;
   private ao: GTAOPass;
   private bloom: UnrealBloomPass;
-  private quality: Quality;
+  quality: Quality;
   private slow = 0;
   private fast = 0;
   private ratio: number;

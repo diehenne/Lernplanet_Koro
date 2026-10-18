@@ -71,3 +71,29 @@ export function grainTexture(): THREE.CanvasTexture {
 
 let grain: THREE.CanvasTexture | null = null;
 export const sharedGrain = (): THREE.CanvasTexture => (grain ??= grainTexture());
+
+/** Gröbere Bodenwellen für Tiefe (als Bump-Map, wirkt unter schrägem Licht). */
+export function groundBump(): THREE.CanvasTexture {
+  const t = canvasTexture(256, (g, r) => {
+    g.fillStyle = '#808080';
+    g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 160; i++) {
+      const x = r() * 256, y = r() * 256, rad = 6 + r() * 20;
+      const v = r() < 0.5 ? 255 : 0;
+      for (const ox of [-256, 0, 256]) for (const oy of [-256, 0, 256]) {
+        const gr = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rad);
+        gr.addColorStop(0, `rgba(${v},${v},${v},0.35)`);
+        gr.addColorStop(1, `rgba(${v},${v},${v},0)`);
+        g.fillStyle = gr;
+        g.fillRect(x + ox - rad, y + oy - rad, rad * 2, rad * 2);
+      }
+    }
+    for (let i = 0; i < 1800; i++) {
+      const x = r() * 256, y = r() * 256;
+      g.strokeStyle = r() < 0.5 ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 2, y - 3 - r() * 4); g.stroke();
+    }
+  }, 21);
+  t.colorSpace = THREE.NoColorSpace;
+  return t;
+}

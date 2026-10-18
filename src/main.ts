@@ -297,6 +297,8 @@ function setRegionChip(): void {
   chip.textContent = world.inside ? `🏠 ${de.houseName}` : `${de.regions[region].emoji} ${de.regions[region].name}`;
 }
 
+const GFX: Record<string, string> = { low: '🔋', med: '🌤️', high: '✨' };
+
 function hud(): void {
   const p = current!;
   screen.innerHTML = `<div class="hud"><span><span class="chip">${p.avatar} ${p.name}</span>
@@ -306,6 +308,7 @@ function hud(): void {
     <button class="alt" id="bag" title="${de.inv.title}">🎒<span class="g tri">△</span></button>
     <button class="alt" id="mute" title="${de.mute}">${speechOn() ? '🔊' : '🔇'}</button>
     <button class="alt" id="music" title="${de.musicToggle}">${musicOn() ? '🎵' : '🔕'}</button>
+    <button class="alt" id="gfx" title="Grafik">${GFX[world.quality] ?? '✨'}</button>
     <button class="alt" id="map" title="${de.map.title}">🗺️<span class="g">Options</span></button></span></div>
     <div id="actions"><button class="alt hidden" id="a-pick" title="${de.actions.pickup}">✋</button>
     <button id="a-act" class="hidden"></button>
@@ -318,6 +321,12 @@ function hud(): void {
   document.getElementById('music')!.addEventListener('click', (e) => {
     setMusic(!musicOn());
     (e.currentTarget as HTMLElement).textContent = musicOn() ? '🎵' : '🔕';
+  });
+  document.getElementById('gfx')!.addEventListener('click', (e) => {
+    const order = ['low', 'med', 'high'] as const;
+    const next = order[(order.indexOf(world.quality as 'low') + 1) % 3];
+    world.setQuality(next);
+    (e.currentTarget as HTMLElement).textContent = GFX[next];
   });
   document.getElementById('map')!.addEventListener('click', () => command('map'));
   document.getElementById('bag')!.addEventListener('click', () => command('inventory'));

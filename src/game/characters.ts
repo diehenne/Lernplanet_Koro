@@ -17,6 +17,43 @@ export function toon(color: number): THREE.MeshStandardMaterial {
   return m;
 }
 
+const outlineCache = new Map<number, THREE.ShaderMaterial>();
+function outlineMat(t: number): THREE.ShaderMaterial {
+  const k = Math.round(t * 1000);
+  let m = outlineCache.get(k);
+  if (!m) {
+    m = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      uniforms: { t: { value: t } },
+      vertexShader: 'uniform float t; void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position + normal * t, 1.0); }',
+      fragmentShader: 'void main(){ gl_FragColor = vec4(0.16, 0.1, 0.07, 1.0); }',
+    });
+    outlineCache.set(k, m);
+  }
+  return m;
+}
+
+/** Dunkle Kontur (Inverted-Hull) um alle Körperteile – typischer Cartoon-Look. */
+export function outline<T extends THREE.Object3D>(root: T): T {
+  const meshes: THREE.Mesh[] = [];
+  root.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.isMesh && !(m as THREE.SkinnedMesh).isSkinnedMesh && !m.userData.noOutline) meshes.push(m);
+  });
+  for (const m of meshes) {
+    const mat = m.material as THREE.Material;
+    if (mat.transparent) continue;
+    m.geometry.computeBoundingSphere();
+    const r = m.geometry.boundingSphere?.radius ?? 0.2;
+    const o = new THREE.Mesh(m.geometry, outlineMat(Math.min(0.03, Math.max(0.006, r * 0.05))));
+    o.userData.noOutline = true;
+    o.castShadow = false;
+    o.receiveShadow = false;
+    m.add(o);
+  }
+  return root;
+}
+
 export function mesh(geo: THREE.BufferGeometry, color: number): THREE.Mesh {
   const m = new THREE.Mesh(geo, toon(color));
   m.castShadow = true;
@@ -265,7 +302,7 @@ export function createHero(avatar = '🦊'): THREE.Group & { userData: HeroParts
   Object.values(acc).forEach((a) => (a.visible = false));
 
   g.userData = { legs, arms, acc };
-  return g;
+  return outline(g);
 }
 
 /** Kleiner Hund, der um die Hauptfigur herumläuft. */
@@ -296,7 +333,7 @@ export function createPuppy(): THREE.Group {
   const tail = taper([[0, 0.34, -0.26], [0, 0.46, -0.36], [0, 0.56, -0.34]], 0.045, 0.025, fur);
   g.add(tail);
   g.userData = { head, tail, legs };
-  return g;
+  return outline(g);
 }
 
 /** Zieht dem Helden die gewählte Kleidung an (Standard: türkise Jacke und orange Mütze). */
@@ -361,7 +398,7 @@ export function createKorok(variant = 0): THREE.Group {
   head.add(leaf);
   g.add(head);
   g.userData = { leaf, head };
-  return g;
+  return outline(g);
 }
 
 export function createTree(rng: () => number, snow = false): THREE.Group {
@@ -624,7 +661,7 @@ export function createDog(): THREE.Group {
   const tail = taper([[0, 0.25, -0.4], [0.3, 0.2, -0.65], [0.55, 0.4, -0.55]], 0.09, 0.05, fur);
   g.add(tail);
   g.userData = { head, tail };
-  return g;
+  return outline(g);
 }
 
 export function createStall(): THREE.Group {

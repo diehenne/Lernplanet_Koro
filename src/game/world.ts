@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { groundTexture } from './textures';
+import { groundTexture, groundBump } from './textures';
 import { sfx } from '../ui/sfx';
 import type { Op, Profile } from '../core/types';
 import { OPS } from '../core/types';
@@ -16,6 +16,7 @@ import {
   createTablet, createTool, createTree, createHouse, applyOutfit, toon,
 } from './characters';
 import { PostFX } from './post';
+import { Grass } from './grass';
 import { buildInterior, type Interior, type Obstacle } from './interior';
 
 const SKY_TINT = new THREE.Color(0.62, 0.8, 1.15);
@@ -205,6 +206,7 @@ export class World {
   private heroPrev = new THREE.Vector3();
   private companionAng = 0;
   private post!: PostFX;
+  private grass!: Grass;
   private motes!: THREE.Points;
   private skyDome!: THREE.Mesh;
   private skyU = { horizon: { value: new THREE.Color() }, zenith: { value: new THREE.Color() } };
@@ -242,6 +244,15 @@ export class World {
 
     this.buildMotes();
     this.buildSky();
+    this.grass = new Grass(heightAt, (x, z, out) => {
+      blend(x, z, (op) => new THREE.Color(THEMES[op].ground), out, 14);
+      out.multiplyScalar(1.3);
+    }, (x, z) => {
+      let m = Math.hypot(x, z) - 11;
+      for (const op of OPS) { const c = BIOME_CENTER[op]; m = Math.min(m, Math.hypot(x - c.x, z - c.z) - 11); }
+      return m;
+    });
+    this.scene.add(this.grass.mesh);
     this.post = new PostFX(this.renderer, this.scene, this.camera);
     addEventListener('resize', () => this.resize());
     this.resize();
@@ -300,6 +311,9 @@ export class World {
     pos.needsUpdate = true;
   }
 
+  setQuality(q: 'low' | 'med' | 'high'): void { this.post.setQuality(q); }
+  get quality(): string { return this.post.quality; }
+
   private resize(): void {
     const w = innerWidth, h = innerHeight;
     this.renderer.setSize(w, h, false);
@@ -340,7 +354,9 @@ export class World {
     geo.computeVertexNormals();
     const tex = groundTexture();
     tex.repeat.set(size / 5, depth / 5);
-    const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: tex, roughness: 1, metalness: 0 }));
+    const bump = groundBump();
+    bump.repeat.set(size / 5, depth / 5);
+    const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: tex, bumpMap: bump, bumpScale: 2.2, roughness: 1, metalness: 0 }));
     ground.receiveShadow = true;
     g.add(ground);
 
@@ -1506,6 +1522,7 @@ export class World {
       for (const d of this.decor) d.obj.visible = Math.abs(d.x - p.x) < CULL && Math.abs(d.z - p.z) < CULL && Math.hypot(d.x - p.x, d.z - p.z) < CULL;
       for (const s of this.spots) if (this.profile?.found.includes(s.id)) s.obj.visible = false;
     }
+    this.grass.update(p.x, p.z, this.t, !this.inside && this.post.quality !== 'low');
     if (!this.inside) {
       this.updateMotes();
       for (const o of this.obstacles) {
