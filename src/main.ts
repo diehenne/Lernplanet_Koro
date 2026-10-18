@@ -1,4 +1,4 @@
-import { AREAS, DOG_STATION, areaById, GRID, GRID_Z, HALF, Z0, Z1, CELL, HUB_SPAWN, biomeAt, areaStations, AREA_STATION, portalStations, extraStations, heightAt, villageOf } from './core/layout';
+import { AREAS, DOG_STATION, areaById, HALF, Z0, Z1, CELL, HUB_SPAWN, biomeAt, areaStations, AREA_STATION, portalStations, extraStations, heightAt, villageOf } from './core/layout';
 import { balance } from './core/money';
 import { rewardChips } from './ui/coins';
 import { itemById } from './core/shop';
@@ -394,38 +394,72 @@ function enterWorld(where: string): void {
   say(where === 'hub' ? de.welcomeHub : isMath ? de.welcome[where as Op] : de.areas[where].welcome);
 }
 
+interface MapPanel { name: string; x0: number; x1: number; z0: number; z1: number; ox: number; oy: number }
+
+/** Kompakte Kartenanordnung: Marktplatz-Welt unten, die Bereiche als Kacheln darüber. */
+const MAP_S = 2.4;
+const MAP_W = 88;
+const MAP_PANELS: MapPanel[] = (() => {
+  const area = (id: string, col: number, row: number): MapPanel => {
+    const a = areaById(id)!;
+    return { name: `${a.emoji} ${a.name}`, x0: a.center.x - 44, x1: a.center.x + 44, z0: a.center.z - 44, z1: a.center.z + 44, ox: col * MAP_W, oy: row * MAP_W };
+  };
+  return [
+    area('puzzle', 0, 0), area('sudoku', 1, 0), area('general', 2, 0), area('german', 0, 1), area('english', 1, 1),
+    { name: '🏠 Marktplatz', x0: -HALF, x1: HALF, z0: -HALF, z1: HALF, ox: 70, oy: 2 * MAP_W },
+  ];
+})();
+const MAP_CW = Math.ceil(3 * MAP_W * MAP_S);
+const MAP_CH = Math.ceil((2 * MAP_W + 2 * HALF + 2) * MAP_S);
+
 /** Weltkarte mit entdeckten Feldern und Orten. */
 function showMap(): void {
   world.paused = true;
   const p = current!;
-  overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="border-radius:12px"><canvas id="mapc" width="248" height="${Math.round(248 * GRID_Z / GRID)}" style="height:54vh;width:auto;max-width:100%;display:block;margin:auto"></canvas></div>
-    <p class="hint">${de.map.legend}</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="savenow">💾 ${de.save.now}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
+  overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="border-radius:12px"><canvas id="mapc" width="${MAP_CW}" height="${MAP_CH}" style="height:56vh;width:auto;max-width:100%;display:block;margin:auto"></canvas></div>
+    <p class="hint">${de.map.legend} · 📍 Du</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="savenow">💾 ${de.save.now}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
     <p class="hint">${p.areas.length ? AREAS.filter((a) => p.areas.includes(a.id)).map((a) => `${a.emoji} ${a.name}`).join(' · ') : de.areaHint}</p></div>`;
   const cv = document.getElementById('mapc') as HTMLCanvasElement;
   const g = cv.getContext('2d')!;
-  const px = cv.width / GRID;
-  const mx = (x: number): number => ((x + HALF) / CELL) * px;
-  const mz = (z: number): number => ((z - Z0) / CELL) * px;
-  for (let cz = 0; cz < GRID_Z; cz++) {
-    for (let cx = 0; cx < GRID; cx++) {
-      const x = -HALF + (cx + 0.5) * CELL, z = Z0 + (cz + 0.5) * CELL;
-      if (!world.seen(x, z)) {
-        g.fillStyle = '#26323a';
-      } else {
-        const c = mapRGB(x, z);
-        const k = 0.75 + Math.min(1, heightAt(x, z) / 5) * 0.4;
-        g.fillStyle = `rgb(${Math.min(255, c[0] * k)},${Math.min(255, c[1] * k)},${Math.min(255, c[2] * k)})`;
+  g.fillStyle = '#1b252c';
+  g.fillRect(0, 0, cv.width, cv.height);
+  const find = (x: number, z: number): MapPanel | undefined => MAP_PANELS.find((m) => x >= m.x0 && x <= m.x1 && z >= m.z0 && z <= m.z1);
+  const mx = (m: MapPanel, x: number): number => (m.ox + (x - m.x0)) * MAP_S;
+  const mz = (m: MapPanel, z: number): number => (m.oy + (z - m.z0)) * MAP_S;
+  const heroP = world.hero.position;
+  const here = find(heroP.x, heroP.z);
+  for (const m of MAP_PANELS) {
+    for (let z = m.z0; z < m.z1; z += CELL) {
+      for (let x = m.x0; x < m.x1; x += CELL) {
+        const cx = x + CELL / 2, cz = z + CELL / 2;
+        if (!world.seen(cx, cz)) {
+          g.fillStyle = '#26323a';
+        } else {
+          const c = mapRGB(cx, cz);
+          const k = 0.75 + Math.min(1, heightAt(cx, cz) / 5) * 0.4;
+          g.fillStyle = `rgb(${Math.min(255, c[0] * k)},${Math.min(255, c[1] * k)},${Math.min(255, c[2] * k)})`;
+        }
+        g.fillRect(mx(m, x), mz(m, z), CELL * MAP_S + 0.5, CELL * MAP_S + 0.5);
       }
-      g.fillRect(cx * px, cz * px, px + 0.5, px + 0.5);
     }
+    g.lineWidth = m === here ? 4 : 2;
+    g.strokeStyle = m === here ? '#ffe066' : '#5b4a2f';
+    g.strokeRect(mx(m, m.x0), mz(m, m.z0), (m.x1 - m.x0) * MAP_S, (m.z1 - m.z0) * MAP_S);
+    g.font = 'bold 15px sans-serif';
+    const w = g.measureText(m.name).width + 12;
+    g.fillStyle = 'rgba(30,25,15,0.75)';
+    g.fillRect(mx(m, m.x0) + 4, mz(m, m.z0) + 4, w, 22);
+    g.fillStyle = '#fff';
+    g.fillText(m.name, mx(m, m.x0) + 10, mz(m, m.z0) + 20);
   }
-  const seen = (x: number, z: number): boolean => world.seen(x, z);
   const dot = (x: number, z: number, col: string, r = 3): void => {
-    if (!seen(x, z)) return;
+    const m = find(x, z);
+    if (!m || !world.seen(x, z)) return;
     g.fillStyle = col;
     g.beginPath();
-    g.arc(mx(x), mz(z), r, 0, 7);
+    g.arc(mx(m, x), mz(m, z), r * 1.6, 0, 7);
     g.fill();
+    g.lineWidth = 1.5;
     g.strokeStyle = '#fff';
     g.stroke();
   };
@@ -435,14 +469,30 @@ function showMap(): void {
     dot(v.chest.x, v.chest.z, '#a855f7');
   }
   for (const st of allStations()) dot(st.x, st.z, st.id === 'shop' ? '#3b82f6' : st.id === 'dog' ? '#fb923c' : st.id === 'portal' ? '#c084fc' : '#facc15', st.id === 'portal' ? 5 : 3);
-  const h = world.hero.position;
-  g.fillStyle = '#ef4444';
-  g.beginPath();
-  g.arc(mx(h.x), mz(h.z), 5, 0, 7);
-  g.fill();
-  g.strokeStyle = '#fff';
-  g.lineWidth = 2;
-  g.stroke();
+  if (here) {
+    const hx = mx(here, heroP.x), hy = mz(here, heroP.z);
+    const glow = g.createRadialGradient(hx, hy, 4, hx, hy, 34);
+    glow.addColorStop(0, 'rgba(255,60,60,0.65)');
+    glow.addColorStop(1, 'rgba(255,60,60,0)');
+    g.fillStyle = glow;
+    g.beginPath();
+    g.arc(hx, hy, 34, 0, 7);
+    g.fill();
+    g.lineWidth = 3;
+    g.strokeStyle = '#fff';
+    g.beginPath();
+    g.arc(hx, hy, 19, 0, 7);
+    g.stroke();
+    g.fillStyle = '#ef4444';
+    g.beginPath();
+    g.arc(hx, hy, 11, 0, 7);
+    g.fill();
+    g.stroke();
+    g.font = '24px sans-serif';
+    g.textAlign = 'center';
+    g.fillText('📍', hx, hy - 24);
+    g.textAlign = 'left';
+  }
   document.getElementById('resume')!.addEventListener('click', closeModal);
   document.getElementById('travel')!.addEventListener('click', showRegions);
   document.getElementById('quit')!.addEventListener('click', () => { save(); showStart(); });
