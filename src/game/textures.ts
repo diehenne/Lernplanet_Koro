@@ -97,3 +97,24 @@ export function groundBump(): THREE.CanvasTexture {
   t.colorSpace = THREE.NoColorSpace;
   return t;
 }
+
+/** Gepflasterter/erdiger Weg: helle Basis mit Fugen und Steinchen (wird mit Wegfarbe multipliziert). */
+let pathTex: THREE.CanvasTexture | null = null;
+export function pathTexture(): THREE.CanvasTexture {
+  return (pathTex ??= canvasTexture(256, (g, r) => {
+    g.fillStyle = '#f0f0f0';
+    g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 16; i++) for (let j = 0; j < 16; j++) {
+      if (r() < 0.45) continue;
+      const v = 215 + Math.floor(r() * 40);
+      g.fillStyle = `rgb(${v},${v},${v})`;
+      g.beginPath();
+      g.roundRect(i * 16 + 1.5 + r() * 2, j * 16 + 1.5 + r() * 2, 12 + r() * 2, 12 + r() * 2, 4);
+      g.fill();
+    }
+    for (let i = 0; i < 600; i++) {
+      g.fillStyle = r() < 0.5 ? 'rgba(255,255,255,0.35)' : 'rgba(120,100,70,0.2)';
+      g.fillRect(r() * 256, r() * 256, 2, 2);
+    }
+  }, 33));
+}

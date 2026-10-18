@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { groundTexture, groundBump } from './textures';
+import { groundTexture, groundBump, pathTexture } from './textures';
 import { sfx } from '../ui/sfx';
 import type { Op, Profile } from '../core/types';
 import { OPS } from '../core/types';
@@ -364,7 +364,11 @@ export class World {
       const geo = new THREE.RingGeometry(0.01, r, 40, 6);
       geo.rotateX(-Math.PI / 2);
       this.conform(geo, x, z, 0.03);
-      g.add(this.groundPatch(geo, color));
+      const p = geo.attributes.position;
+      const edge = new Float32Array(p.count);
+      for (let i = 0; i < p.count; i++) edge[i] = Math.min(1, Math.max(0, (r - Math.hypot(p.getX(i) - x, p.getZ(i) - z)) / 1.4));
+      g.add(this.groundPatch(geo, color, edge));
+      this.pebbleRing(x, z, r, color);
     };
     flat(7.5, 0, 0, 0xcfc8b8);
     for (const op of OPS) {
@@ -430,11 +434,53 @@ export class World {
     geo.computeVertexNormals();
   }
 
-  private groundPatch(geo: THREE.BufferGeometry, color: number): THREE.Mesh {
-    const m = new THREE.Mesh(geo, toon(color));
+  private groundPatch(geo: THREE.BufferGeometry, color: number, edge?: Float32Array): THREE.Mesh {
+    const mat = toon(color);
+    mat.side = THREE.DoubleSide;
+    mat.map = pathTexture();
+    if (edge) {
+      geo.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
+      mat.transparent = true;
+      mat.depthWrite = false;
+    }
+    mat.onBeforeCompile = (sh) => {
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute float aEdge;\nvarying float vEdge;\nvarying vec3 vWp;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvEdge = aEdge;\nvWp = (modelMatrix * vec4(position, 1.0)).xyz;');
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vEdge;\nvarying vec3 vWp;')
+        .replace('#include <map_fragment>', `diffuseColor *= texture2D(map, vWp.xz * 0.22);
+${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
+    };
+    const m = new THREE.Mesh(geo, mat);
     m.receiveShadow = true;
-    (m.material as THREE.Material).side = THREE.DoubleSide;
+    m.renderOrder = 1;
     return m;
+  }
+
+  private pebbles(list: { x: number; z: number; s: number; r: number }[], color: number): void {
+    if (!list.length) return;
+    const im = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(0.5, 0), toon(color), list.length);
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
+    list.forEach((o, i) => {
+      m.compose(new THREE.Vector3(o.x, heightAt(o.x, o.z) + o.s * 0.15, o.z), q.setFromEuler(e.set(o.r, o.r * 3, 0)), new THREE.Vector3(o.s, o.s * 0.6, o.s));
+      im.setMatrixAt(i, m);
+      im.setColorAt(i, c.setHex(color).multiplyScalar(0.8 + ((o.r * 7) % 1) * 0.3));
+    });
+    im.castShadow = true;
+    im.receiveShadow = true;
+    this.worldGroup.add(im);
+  }
+
+  private pebbleRing(cx: number, cz: number, r: number, color: number): void {
+    const rng = seeded(Math.floor(cx * 31 + cz * 17 + r));
+    const list: { x: number; z: number; s: number; r: number }[] = [];
+    const n = Math.round(r * 9);
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + rng() * 0.2, d = r - 0.3 - rng() * 0.5;
+      list.push({ x: cx + Math.cos(a) * d, z: cz + Math.sin(a) * d, s: 0.12 + rng() * 0.16, r: rng() * 6 });
+    }
+    this.pebbles(list, new THREE.Color(color).multiplyScalar(0.8).getHex());
   }
 
   /** Weg zwischen zwei Punkten, folgt der Geländehöhe. */
@@ -443,21 +489,33 @@ export class World {
     const ux = dx / len, uz = dz / len;
     const a = from, b = to;
     const n = Math.max(2, Math.round((b - a) / 1.5));
-    const pos: number[] = [], idx: number[] = [];
+    const pos: number[] = [], idx: number[] = [], edge: number[] = [];
+    const rng = seeded(Math.floor(bx * 13 + bz * 7));
+    const list: { x: number; z: number; s: number; r: number }[] = [];
     for (let i = 0; i <= n; i++) {
       const d = a + ((b - a) * i) / n;
       const cx = ax + ux * d, cz = az + uz * d;
-      for (const side of [-1, 1]) {
+      for (const side of [-1, 0, 1]) {
         const x = cx - uz * side * (width / 2), z = cz + ux * side * (width / 2);
         pos.push(x, heightAt(x, z) + 0.04, z);
+        edge.push(side === 0 ? 1 : 0.15);
       }
-      if (i > 0) { const k = i * 2; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); }
+      if (i > 0) {
+        const k = i * 3;
+        idx.push(k - 3, k - 2, k, k - 2, k + 1, k, k - 2, k - 1, k + 1, k - 1, k + 2, k + 1);
+      }
+      for (const side of [-1, 1]) {
+        if (rng() < 0.6) continue;
+        const off = (width / 2 + (rng() - 0.3) * 0.5) * side;
+        list.push({ x: cx - uz * off, z: cz + ux * off, s: 0.1 + rng() * 0.18, r: rng() * 6 });
+      }
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setIndex(idx);
     geo.computeVertexNormals();
-    this.worldGroup.add(this.groundPatch(geo, color));
+    this.worldGroup.add(this.groundPatch(geo, color, new Float32Array(edge)));
+    this.pebbles(list, new THREE.Color(color).multiplyScalar(0.7).getHex());
   }
 
   private buildBiome(op: Op): void {
