@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { sharedGrain } from './textures';
+import { createBush, createFlower, createTree } from './nature';
+export { createTree, createFruitTree, createMushroom, createRock, createMountain, createLily } from './nature';
 import { itemById } from '../core/shop';
 import type { Op } from '../core/types';
 
@@ -401,56 +403,6 @@ export function createKorok(variant = 0): THREE.Group {
   return outline(g);
 }
 
-export function createTree(rng: () => number, snow = false): THREE.Group {
-  const g = new THREE.Group();
-  const h = 1.2 + rng() * 0.8;
-  const trunk = mesh(new THREE.CylinderGeometry(0.2, 0.3, h, 16), 0x8a5a2b);
-  trunk.position.y = h / 2;
-  g.add(trunk);
-  const greens = snow ? [0x4f8f6a, 0x5aa078, 0x3f7f5a] : [0x3f9e4a, 0x4fb35a, 0x2f8a52];
-  for (let i = 0; i < 3; i++) {
-    const c = mesh(new THREE.ConeGeometry(1.3 - i * 0.3, 1.3, 20), greens[i % 3]);
-    c.position.y = h + i * 0.8;
-    g.add(c);
-    if (snow) {
-      const cap = mesh(new THREE.ConeGeometry((1.3 - i * 0.3) * 0.62, 0.7, 10), 0xffffff);
-      cap.position.y = h + i * 0.8 + 0.35;
-      g.add(cap);
-    }
-  }
-  return g;
-}
-
-export function createMushroom(color = 0xe8546b): THREE.Group {
-  const g = new THREE.Group();
-  g.add(at(mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.35, 16), 0xfff0d0), 0, 0.17, 0));
-  g.add(at(mesh(new THREE.SphereGeometry(0.3, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), color), 0, 0.35, 0));
-  return g;
-}
-
-export function createRock(rng: () => number, color = 0x9aa6b5): THREE.Group {
-  const g = new THREE.Group();
-  const r = createMeshRock(0.6 + rng() * 0.9, color);
-  r.rotation.set(rng(), rng() * 6, rng());
-  g.add(r);
-  return g;
-}
-
-function createMeshRock(size: number, color: number): THREE.Mesh {
-  const m = mesh(new THREE.DodecahedronGeometry(size, 0), color);
-  m.position.y = size * 0.5;
-  m.scale.y = 0.8;
-  return m;
-}
-
-export function createMountain(rng: () => number): THREE.Group {
-  const g = new THREE.Group();
-  const h = 4 + rng() * 4;
-  g.add(at(mesh(new THREE.ConeGeometry(2.2 + rng(), h, 7), 0x8d9bb0), 0, h / 2, 0));
-  g.add(at(mesh(new THREE.ConeGeometry(1.0, h * 0.35, 14), 0xffffff), 0, h * 0.84, 0));
-  return g;
-}
-
 export function createCactus(rng: () => number): THREE.Group {
   const g = new THREE.Group();
   const h = 1.4 + rng() * 1.0;
@@ -481,13 +433,6 @@ export function createDeadTree(rng: () => number): THREE.Group {
   return g;
 }
 
-export function createLily(): THREE.Group {
-  const g = new THREE.Group();
-  g.add(at(mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.05, 28), 0x3f9e6a), 0, 0.03, 0));
-  g.add(at(mesh(new THREE.SphereGeometry(0.12, 16, 16), 0xff9ecb), 0.1, 0.12, 0.05));
-  return g;
-}
-
 export function createTablet(): THREE.Group {
   const g = new THREE.Group();
   g.add(at(mesh(new THREE.BoxGeometry(1.6, 2.2, 0.35), 0x9a9aa6), 0, 1.1, 0));
@@ -495,17 +440,6 @@ export function createTablet(): THREE.Group {
   const rune = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.07, 16, 40), new THREE.MeshBasicMaterial({ color: 0x66e0ff }));
   rune.position.set(0, 1.3, 0.2);
   g.add(rune);
-  return g;
-}
-
-export function createFruitTree(): THREE.Group {
-  const g = new THREE.Group();
-  g.add(at(mesh(new THREE.CylinderGeometry(0.25, 0.35, 1.6, 16), 0x8a5a2b), 0, 0.8, 0));
-  g.add(at(mesh(new THREE.SphereGeometry(1.2, 28, 24), 0x4fb35a), 0, 2.2, 0));
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2;
-    g.add(at(mesh(new THREE.SphereGeometry(0.17, 16, 16), i % 2 ? 0xe8546b : 0xffc94d), Math.cos(a) * 1.05, 2.1 + (i % 3) * 0.3, Math.sin(a) * 1.05));
-  }
   return g;
 }
 
@@ -525,19 +459,13 @@ export function createBuildItem(id: string): THREE.Group {
   const wood = 0x8a5a2b;
   switch (id) {
     case 'flower':
-      for (let i = 0; i < 3; i++) {
-        const x = (i - 1) * 0.3, h = 0.4 + i * 0.1;
-        g.add(at(mesh(new THREE.CylinderGeometry(0.03, 0.03, h, 10), 0x3f9e4a), x, h / 2, 0));
-        g.add(at(mesh(new THREE.SphereGeometry(0.13, 16, 16), [0xff6b9a, 0xffd24d, 0xffffff][i]), x, h + 0.05, 0));
-      }
-      break;
+      return createFlower();
     case 'fence':
       for (let i = 0; i < 4; i++) g.add(at(mesh(new THREE.BoxGeometry(0.12, 0.8, 0.12), wood), -0.9 + i * 0.6, 0.4, 0));
       for (const y of [0.3, 0.6]) g.add(at(mesh(new THREE.BoxGeometry(1.9, 0.1, 0.08), 0xc58b4a), 0, y, 0));
       break;
     case 'bush':
-      for (const [x, z, r] of [[0, 0, 0.5], [0.4, 0.1, 0.38], [-0.35, 0.1, 0.4]]) g.add(at(mesh(new THREE.SphereGeometry(r, 20, 16), 0x3f9e4a), x, r * 0.8, z));
-      break;
+      return createBush();
     case 'lantern':
       g.add(at(mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 12), 0x555555), 0, 0.7, 0));
       g.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.22, 20, 20), new THREE.MeshBasicMaterial({ color: 0xffe066 })), 0, 1.55, 0));
