@@ -47,11 +47,12 @@ export function buildInterior(ox: number, key: string): Interior {
   add(floor, ox, -0.1, 0);
 
   // Runder Teppich mit Rand
-  for (const [r, c] of [[1.9, 0x8f2f2a], [1.7, 0xc2453a], [1.25, 0xe8b04a], [1.1, 0xc2453a]] as [number, number][]) {
+  // Deutlich gestaffelte Höhen, sonst flackern gleich hohe Flächen (Z-Fighting)
+  ([[1.9, 0x8f2f2a], [1.7, 0xc2453a], [1.25, 0xe8b04a], [1.1, 0xc2453a]] as [number, number][]).forEach(([r, c], k) => {
     const rug = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.03, 36), toon(c));
     rug.receiveShadow = true;
-    add(rug, ox, 0.02 + (r < 1.5 ? 0.005 : 0), 0.4);
-  }
+    add(rug, ox, 0.03 + k * 0.02, 0.4);
+  });
 
   // Wände mit Holzsockel, Leisten und Balken
   add(soft(9.4, 2.8, 0.3, cream, 0.05), ox, 1.4, -3.65);

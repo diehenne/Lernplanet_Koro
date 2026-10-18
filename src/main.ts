@@ -403,7 +403,7 @@ function showMap(): void {
   world.paused = true;
   const p = current!;
   overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="border-radius:12px"><canvas id="mapc" width="${MAP_CW}" height="${MAP_CH}" style="width:100%;max-width:560px;height:auto;display:block;margin:auto"></canvas></div>
-    <p class="hint">${de.map.legend} · 📍 Du</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
+    <p class="hint">${de.map.legend} · 🔺 Du</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
     <p class="hint">${p.areas.length ? AREAS.filter((a) => p.areas.includes(a.id)).map((a) => `${a.emoji} ${a.name}`).join(' · ') : de.areaHint}</p></div>`;
   const cv = document.getElementById('mapc') as HTMLCanvasElement;
   const g = cv.getContext('2d')!;
@@ -454,15 +454,20 @@ function showMap(): void {
     g.beginPath();
     g.arc(hx, hy, 19, 0, 7);
     g.stroke();
+    g.save();
+    g.translate(hx, hy);
+    g.rotate(-world.hero.rotation.y + Math.PI);
     g.fillStyle = '#ef4444';
+    g.lineWidth = 3;
+    g.lineJoin = 'round';
     g.beginPath();
-    g.arc(hx, hy, 11, 0, 7);
+    g.moveTo(0, -15);
+    g.lineTo(11, 11);
+    g.lineTo(-11, 11);
+    g.closePath();
     g.fill();
     g.stroke();
-    g.font = '24px sans-serif';
-    g.textAlign = 'center';
-    g.fillText('📍', hx, hy - 24);
-    g.textAlign = 'left';
+    g.restore();
   }
   document.getElementById('resume')!.addEventListener('click', closeModal);
   document.getElementById('travel')!.addEventListener('click', showRegions);
