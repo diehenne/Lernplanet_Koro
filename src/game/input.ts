@@ -191,6 +191,7 @@ function createGamepadNav(emit: (c: Cmd) => void) {
     if (best) setFocus(best);
   };
 
+  let anyDown = false;
   const click = (sel: string): boolean => {
     const el = document.querySelector<HTMLElement>(sel);
     if (!el || el.offsetParent === null) return false;
@@ -214,9 +215,13 @@ function createGamepadNav(emit: (c: Cmd) => void) {
       if (b(14)) ax = -1; else if (b(15)) ax = 1;
       if (b(12)) ay = -1; else if (b(13)) ay = 1;
 
-      // Create/Share: Sprache an/aus, Touchpad: Musik an/aus (überall)
-      if (edge(8)) click('#mute');
-      if (edge(17)) click('#music');
+      // Create oder L3: Sprache an/aus; Touchpad oder R3: Musik an/aus (überall)
+      const anyNow = gp.buttons.some((x) => x.pressed);
+      if (anyNow && !anyDown) window.dispatchEvent(new CustomEvent('padpress'));
+      anyDown = anyNow;
+      const eSpeech = edge(8), eSpeech2 = edge(10), eMusic = edge(17), eMusic2 = edge(11);
+      if (eSpeech || eSpeech2) click('#mute');
+      if (eMusic || eMusic2) click('#music');
 
       const list = buttons();
       if (list.length > 0) {
