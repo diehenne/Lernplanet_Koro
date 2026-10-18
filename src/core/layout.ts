@@ -91,12 +91,14 @@ function segDist(px: number, pz: number, ax: number, az: number, bx: number, bz:
 const LANDMARKS = (['add', 'sub', 'mul', 'div'] as Op[]).map((op) => ({ op, c: BIOME_CENTER[op], ...landmarksOf(op) }));
 
 /** Englisch-Land: schließt im Norden an die Mathe-Welten an. */
-export const ENGLISH = { x: 0, z: -150, r: 36 };
-export const inEnglish = (x: number, z: number): boolean => Math.hypot(x - ENGLISH.x, z - ENGLISH.z) < ENGLISH.r + 12;
-export const ENGLISH_SPAWN = { x: 0, z: -142 };
+export const ENGLISH = { x: 0, z: -130, r: 36 };
+export const ENGLISH_SPAWN = { x: 0, z: -122 };
 
-/** Begehbare Welt als Rechteck; weitere Bereiche erweitern es nach Norden (kleinere Z0). */
-export const Z0 = -530;
+/** Begehbare Welt als Rechteck: der Marktplatz mit den Mathe-Welten in der Mitte, die Bereiche ringsum. */
+export const SPACING = 130;
+export const X0 = -184;
+export const X1 = 184;
+export const Z0 = -184;
 export const Z1 = HALF;
 
 /**
@@ -116,17 +118,20 @@ export interface Area {
   ground: number;
   map: [number, number, number];
 }
-const SPACING = 80;
-const mkArea = (id: string, name: string, emoji: string, z: number, ground: number, map: [number, number, number]): Area => ({
-  id, name, emoji, center: { x: 0, z }, radius: 40, spawn: { x: 0, z: z + 8 }, portal: { x: 0, z }, ground, map,
+const mkArea = (id: string, name: string, emoji: string, x: number, z: number, ground: number, map: [number, number, number]): Area => ({
+  id, name, emoji, center: { x, z }, radius: 40, spawn: { x, z: z + 8 }, portal: { x, z }, ground, map,
 });
-/** Reihenfolge von Süden nach Norden; jeder Bereich liegt direkt hinter dem vorigen. */
+/**
+ * Lage rund um den Marktplatz:
+ *   Deutsch-Dorf   Englisch-Land   Wissens-Wiese
+ *   Sudoku-Hügel   Marktplatz      Rätsel-Berg
+ */
 export const AREAS: Area[] = [
-  { id: 'english', name: 'Englisch-Land', emoji: '🇬🇧', center: { x: ENGLISH.x, z: ENGLISH.z }, radius: ENGLISH.r + 12, spawn: ENGLISH_SPAWN, portal: { x: 0, z: ENGLISH.z }, ground: 0xb6e08a, map: [127, 197, 102] },
-  mkArea('german', 'Deutsch-Dorf', '📚', -244, 0xf0d9a0, [220, 190, 120]),
-  mkArea('general', 'Wissens-Wiese', '🌍', -244 - SPACING, 0x9fd8c0, [100, 200, 170]),
-  mkArea('sudoku', 'Sudoku-Hügel', '🔢', -244 - SPACING * 2, 0xc9b8f0, [170, 150, 225]),
-  mkArea('puzzle', 'Rätsel-Berg', '🧩', -244 - SPACING * 3, 0xf0b0a0, [230, 140, 130]),
+  { id: 'english', name: 'Englisch-Land', emoji: '🇬🇧', center: { x: ENGLISH.x, z: ENGLISH.z }, radius: ENGLISH.r + 12, spawn: ENGLISH_SPAWN, portal: { x: ENGLISH.x, z: ENGLISH.z }, ground: 0xb6e08a, map: [127, 197, 102] },
+  mkArea('german', 'Deutsch-Dorf', '📚', -SPACING, -SPACING, 0xf0d9a0, [220, 190, 120]),
+  mkArea('general', 'Wissens-Wiese', '🌍', SPACING, -SPACING, 0x9fd8c0, [100, 200, 170]),
+  mkArea('sudoku', 'Sudoku-Hügel', '🔢', -SPACING, 0, 0xc9b8f0, [170, 150, 225]),
+  mkArea('puzzle', 'Rätsel-Berg', '🧩', SPACING, 0, 0xf0b0a0, [230, 140, 130]),
 ];
 /** Bello, der Hund auf dem Marktplatz (Rechen-Rennen). */
 export const DOG_STATION: Station = { id: 'dog', op: 'add', x: -2.2, z: -3.2 };
@@ -146,30 +151,15 @@ export function areaStations(a: Area): Station[] {
 }
 export const englishStations = (): Station[] => areaStations(AREAS[0]);
 
-/** Geländehöhe: sanfte Hügel, flach um Marktplatz, Dörfer und Wege, dazu Gipfel, Plateaus und Täler. */
-/** Höhe der Lernbereiche: die Kette steigt nach Norden an (Wissens-Wiese leicht, Sudoku hoch, Rätsel-Berg am höchsten). */
-const AREA_LIFT: Record<string, number> = { english: 0, german: 0, general: 4, sudoku: 14, puzzle: 26 };
-function areaLift(x: number, z: number): number {
-  if (z > AREAS[1].center.z + 30) return 0;
-  let lift = 0;
-  for (let i = 0; i + 1 < AREAS.length; i++) {
-    const a = AREAS[i], b = AREAS[i + 1];
-    const t = Math.min(1, Math.max(0, (a.center.z - 22 - z) / (a.center.z - b.center.z - 44)));
-    lift += (AREA_LIFT[b.id] - AREA_LIFT[a.id]) * t * t * (3 - 2 * t);
-  }
-  return lift * (1 - smooth(30, 46, Math.abs(x)));
-}
-
+/** Geländehöhe: sanfte Hügel, flach um Marktplatz, Dörfer und Wege, dazu Gipfel, Plateaus und Täler. Die Bereiche außerhalb sind eben. */
 export function heightAt(x: number, z: number): number {
   if (x > 500) return 0;
-  if (inEnglish(x, z)) return 0;
   let flat = smooth(10, 18, Math.hypot(x, z));
   for (const m of LANDMARKS) {
     flat = Math.min(flat, smooth(11, 19, Math.hypot(x - m.c.x, z - m.c.z)));
     flat = Math.min(flat, smooth(2.5, 6, segDist(x, z, 0, 0, m.c.x, m.c.z)));
   }
-  flat *= 1 - smooth(58, 86, -z);
-  flat = Math.min(flat, 1 - smooth(48, 58, -z) * (1 - smooth(3, 8, Math.abs(x))));
+  flat *= 1 - smooth(50, 64, Math.max(Math.abs(x), Math.abs(z)));
   let h = (1.5 * Math.sin(x * 0.085 + 1.7) * Math.cos(z * 0.07 + 0.6) + 0.8 * Math.sin(x * 0.19 + z * 0.15 + 2)) * 0.6 * flat;
   for (const m of LANDMARKS) {
     h += SUMMIT_H * gauss(x - m.summit.x, z - m.summit.z, 7.5);
@@ -180,15 +170,15 @@ export function heightAt(x: number, z: number): number {
     const w = 0.9 + (onRampSide ? 8 * Math.exp(-(((x - m.plateau.x) / 2.2) ** 2)) : 0);
     h += PLATEAU.h * (1 - smooth(0, w, d));
   }
-  return h + areaLift(x, z);
+  return h;
 }
 
 /** Entdeckungs-Raster der Karte. */
 export const CELL = 4;
-export const GRID = Math.ceil((HALF * 2) / CELL);
+export const GRID = Math.ceil((X1 - X0) / CELL);
 export const GRID_Z = Math.ceil((Z1 - Z0) / CELL);
 export const cellOf = (x: number, z: number): number => {
-  const cx = Math.min(GRID - 1, Math.max(0, Math.floor((x + HALF) / CELL)));
+  const cx = Math.min(GRID - 1, Math.max(0, Math.floor((x - X0) / CELL)));
   const cz = Math.min(GRID_Z - 1, Math.max(0, Math.floor((z - Z0) / CELL)));
   return cz * GRID + cx;
 };

@@ -1,4 +1,4 @@
-import { AREAS, DOG_STATION, areaById, HALF, Z0, Z1, CELL, HUB_SPAWN, biomeAt, areaStations, AREA_STATION, portalStations, extraStations, heightAt, villageOf } from './core/layout';
+import { AREAS, areaById, DOG_STATION, HALF, X0, X1, Z0, Z1, CELL, HUB_SPAWN, biomeAt, areaStations, AREA_STATION, portalStations, extraStations, heightAt, villageOf } from './core/layout';
 import { balance } from './core/money';
 import { rewardChips } from './ui/coins';
 import { itemById } from './core/shop';
@@ -151,7 +151,7 @@ const MAP_COLORS: Record<string, [number, number, number]> = { add: [120, 190, 9
 /** Farbe eines Kartenfeldes: Marktplatz, Bereiche im Norden oder Mathe-Welt. */
 function mapRGB(x: number, z: number): [number, number, number] {
   if (Math.abs(x) < 8 && Math.abs(z) < 8) return [200, 190, 150];
-  if (z < -62) {
+  if (Math.abs(x) > HALF || z < -HALF) {
     const a = AREAS.find((q) => Math.hypot(x - q.center.x, z - q.center.z) < q.radius - 6);
     return a ? a.map : MAP_COLORS.north;
   }
@@ -240,7 +240,7 @@ function drawMinimap(): void {
     for (let i = 0; i < n; i++) {
       const x = p.x - MINI_R + (i + 0.5) * span, z = p.z - MINI_R + (j + 0.5) * span;
       let col = '#1d262c';
-      if (Math.abs(x) <= HALF && z >= Z0 && z <= Z1 && world.seen(x, z)) {
+      if (x >= X0 && x <= X1 && z >= Z0 && z <= Z1 && world.seen(x, z)) {
         const base = mapRGB(x, z);
         const k = 0.75 + Math.min(1, heightAt(x, z) / 5) * 0.4;
         col = `rgb(${Math.min(255, base[0] * k)},${Math.min(255, base[1] * k)},${Math.min(255, base[2] * k)})`;
@@ -394,70 +394,66 @@ function enterWorld(where: string): void {
   say(where === 'hub' ? de.welcomeHub : isMath ? de.welcome[where as Op] : de.areas[where].welcome);
 }
 
-interface MapPanel { name: string; x0: number; x1: number; z0: number; z1: number; ox: number; oy: number }
-
-/** Kompakte Kartenanordnung: Marktplatz-Welt unten, die Bereiche als Kacheln darüber. */
-const MAP_S = 2.4;
-const MAP_W = 88;
-const MAP_PANELS: MapPanel[] = (() => {
-  const area = (id: string, col: number, row: number): MapPanel => {
-    const a = areaById(id)!;
-    return { name: `${a.emoji} ${a.name}`, x0: a.center.x - 44, x1: a.center.x + 44, z0: a.center.z - 44, z1: a.center.z + 44, ox: col * MAP_W, oy: row * MAP_W };
-  };
-  return [
-    area('puzzle', 0, 0), area('sudoku', 1, 0), area('general', 2, 0), area('german', 0, 1), area('english', 1, 1),
-    { name: '🏠 Marktplatz', x0: -HALF, x1: HALF, z0: -HALF, z1: HALF, ox: 70, oy: 2 * MAP_W },
-  ];
-})();
-const MAP_CW = Math.ceil(3 * MAP_W * MAP_S);
-const MAP_CH = Math.ceil((2 * MAP_W + 2 * HALF + 2) * MAP_S);
+const MAP_S = 2;
+const MAP_CW = (X1 - X0) * MAP_S;
+const MAP_CH = (Z1 - Z0) * MAP_S;
 
 /** Weltkarte mit entdeckten Feldern und Orten. */
 function showMap(): void {
   world.paused = true;
   const p = current!;
-  overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="border-radius:12px"><canvas id="mapc" width="${MAP_CW}" height="${MAP_CH}" style="height:56vh;width:auto;max-width:100%;display:block;margin:auto"></canvas></div>
+  overlay.innerHTML = `<div class="panel center"><h2>🗺️ ${de.map.title}</h2><div id="mapwrap" style="border-radius:12px"><canvas id="mapc" width="${MAP_CW}" height="${MAP_CH}" style="width:100%;max-width:560px;height:auto;display:block;margin:auto"></canvas></div>
     <p class="hint">${de.map.legend} · 📍 Du</p><div><button class="alt" id="resume">▶ ${de.resume}</button><button id="travel">${de.map.travel}</button><button class="alt" id="savenow">💾 ${de.save.now}</button><button class="alt" id="quit">🚪 ${de.save.quit}</button></div>
     <p class="hint">${p.areas.length ? AREAS.filter((a) => p.areas.includes(a.id)).map((a) => `${a.emoji} ${a.name}`).join(' · ') : de.areaHint}</p></div>`;
   const cv = document.getElementById('mapc') as HTMLCanvasElement;
   const g = cv.getContext('2d')!;
-  g.fillStyle = '#1b252c';
-  g.fillRect(0, 0, cv.width, cv.height);
-  const find = (x: number, z: number): MapPanel | undefined => MAP_PANELS.find((m) => x >= m.x0 && x <= m.x1 && z >= m.z0 && z <= m.z1);
-  const mx = (m: MapPanel, x: number): number => (m.ox + (x - m.x0)) * MAP_S;
-  const mz = (m: MapPanel, z: number): number => (m.oy + (z - m.z0)) * MAP_S;
-  const heroP = world.hero.position;
-  const here = find(heroP.x, heroP.z);
-  for (const m of MAP_PANELS) {
-    for (let z = m.z0; z < m.z1; z += CELL) {
-      for (let x = m.x0; x < m.x1; x += CELL) {
-        const cx = x + CELL / 2, cz = z + CELL / 2;
-        if (!world.seen(cx, cz)) {
-          g.fillStyle = '#26323a';
-        } else {
-          const c = mapRGB(cx, cz);
-          const k = 0.75 + Math.min(1, heightAt(cx, cz) / 5) * 0.4;
-          g.fillStyle = `rgb(${Math.min(255, c[0] * k)},${Math.min(255, c[1] * k)},${Math.min(255, c[2] * k)})`;
-        }
-        g.fillRect(mx(m, x), mz(m, z), CELL * MAP_S + 0.5, CELL * MAP_S + 0.5);
+  const mx = (x: number): number => (x - X0) * MAP_S;
+  const mz = (z: number): number => (z - Z0) * MAP_S;
+  for (let z = Z0; z < Z1; z += CELL) {
+    for (let x = X0; x < X1; x += CELL) {
+      const cx = x + CELL / 2, cz = z + CELL / 2;
+      if (!world.seen(cx, cz)) {
+        g.fillStyle = '#26323a';
+      } else {
+        const c = mapRGB(cx, cz);
+        const k = 0.75 + Math.min(1, heightAt(cx, cz) / 5) * 0.4;
+        g.fillStyle = `rgb(${Math.min(255, c[0] * k)},${Math.min(255, c[1] * k)},${Math.min(255, c[2] * k)})`;
       }
+      g.fillRect(mx(x), mz(z), CELL * MAP_S + 0.5, CELL * MAP_S + 0.5);
     }
-    g.lineWidth = m === here ? 4 : 2;
-    g.strokeStyle = m === here ? '#ffe066' : '#5b4a2f';
-    g.strokeRect(mx(m, m.x0), mz(m, m.z0), (m.x1 - m.x0) * MAP_S, (m.z1 - m.z0) * MAP_S);
-    g.font = 'bold 15px sans-serif';
-    const w = g.measureText(m.name).width + 12;
-    g.fillStyle = 'rgba(30,25,15,0.75)';
-    g.fillRect(mx(m, m.x0) + 4, mz(m, m.z0) + 4, w, 22);
-    g.fillStyle = '#fff';
-    g.fillText(m.name, mx(m, m.x0) + 10, mz(m, m.z0) + 20);
   }
+  // Bereiche: gestrichelter Kreis mit Namen (erst nach der Entdeckung)
+  g.font = 'bold 16px sans-serif';
+  g.textAlign = 'center';
+  for (const a of AREAS) {
+    const known = p.areas.includes(a.id);
+    g.setLineDash([8, 6]);
+    g.lineWidth = 2;
+    g.strokeStyle = known ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.25)';
+    g.beginPath();
+    g.arc(mx(a.center.x), mz(a.center.z), a.radius * MAP_S, 0, 7);
+    g.stroke();
+    g.setLineDash([]);
+    const label = known ? `${a.emoji} ${a.name}` : '❓';
+    const w = g.measureText(label).width + 14;
+    g.fillStyle = 'rgba(30,25,15,0.75)';
+    g.fillRect(mx(a.center.x) - w / 2, mz(a.center.z - a.radius) + 6, w, 24);
+    g.fillStyle = '#fff';
+    g.fillText(label, mx(a.center.x), mz(a.center.z - a.radius) + 24);
+  }
+  const hubLabel = '🏠 Marktplatz';
+  g.fillStyle = 'rgba(30,25,15,0.75)';
+  const hw = g.measureText(hubLabel).width + 14;
+  g.fillRect(mx(0) - hw / 2, mz(-HALF) + 4, hw, 24);
+  g.fillStyle = '#fff';
+  g.fillText(hubLabel, mx(0), mz(-HALF) + 22);
+  g.textAlign = 'left';
+  const heroP = world.hero.position;
   const dot = (x: number, z: number, col: string, r = 3): void => {
-    const m = find(x, z);
-    if (!m || !world.seen(x, z)) return;
+    if (!world.seen(x, z)) return;
     g.fillStyle = col;
     g.beginPath();
-    g.arc(mx(m, x), mz(m, z), r * 1.6, 0, 7);
+    g.arc(mx(x), mz(z), r * 1.6, 0, 7);
     g.fill();
     g.lineWidth = 1.5;
     g.strokeStyle = '#fff';
@@ -469,8 +465,8 @@ function showMap(): void {
     dot(v.chest.x, v.chest.z, '#a855f7');
   }
   for (const st of allStations()) dot(st.x, st.z, st.id === 'shop' ? '#3b82f6' : st.id === 'dog' ? '#fb923c' : st.id === 'portal' ? '#c084fc' : '#facc15', st.id === 'portal' ? 5 : 3);
-  if (here) {
-    const hx = mx(here, heroP.x), hy = mz(here, heroP.z);
+  {
+    const hx = mx(heroP.x), hy = mz(heroP.z);
     const glow = g.createRadialGradient(hx, hy, 4, hx, hy, 34);
     glow.addColorStop(0, 'rgba(255,60,60,0.65)');
     glow.addColorStop(1, 'rgba(255,60,60,0)');

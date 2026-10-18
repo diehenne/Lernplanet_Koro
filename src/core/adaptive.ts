@@ -1,7 +1,33 @@
 import { kindsFor, makeTask, pick, type Rng } from './generator';
-import { BIOME_CENTER, GRID, GRID_Z } from './layout';
+import { AREAS, BIOME_CENTER, CELL, GRID, GRID_Z, HALF, cellOf } from './layout';
 import { COINS, addCoins, coinBreakdown } from './money';
 import { MAX_LEVEL, MAX_STARS, OPS, START_LEVEL, START_STARS, type BuiltItem, type Op, type Profile, type Task } from './types';
+
+/** Bereiche lagen früher als Kette im Norden; Spielstände werden auf die Ringanordnung umgerechnet. */
+const OLD_AREAS = [{ id: 'english', z: -150 }, { id: 'german', z: -244 }, { id: 'general', z: -324 }, { id: 'sudoku', z: -404 }, { id: 'puzzle', z: -484 }];
+const OLD_GRID = 31;
+const OLD_GRID_Z = 148;
+const OLD_Z0 = -530;
+
+/** Entdeckte Felder: alte Karten (schmal, lang) werden auf das neue Raster übertragen. */
+function migrateExplored(explored: string, areas: string[]): string {
+  const full = GRID * GRID_Z;
+  if (explored.length === 0 || explored.length === full) return explored;
+  if (explored.length > OLD_GRID * OLD_GRID_Z || explored.length % OLD_GRID !== 0) return '';
+  const old = '0'.repeat(OLD_GRID * OLD_GRID_Z - explored.length) + explored;
+  const out = new Uint8Array(full);
+  for (let i = 0; i < old.length; i++) {
+    if (old[i] !== '1') continue;
+    const x = -HALF + ((i % OLD_GRID) + 0.5) * CELL;
+    const z = OLD_Z0 + (Math.floor(i / OLD_GRID) + 0.5) * CELL;
+    if (z >= -HALF) out[cellOf(x, z)] = 1;
+  }
+  for (const a of AREAS) {
+    if (!areas.includes(a.id)) continue;
+    for (let dz = -24; dz <= 24; dz += CELL) for (let dx = -24; dx <= 24; dx += CELL) if (dx * dx + dz * dz <= 576) out[cellOf(a.center.x + dx, a.center.z + dz)] = 1;
+  }
+  return Array.from(out, (v) => (v ? '1' : '0')).join('');
+}
 
 export function newProfile(id: string, name: string, avatar: string): Profile {
   return {
@@ -36,9 +62,6 @@ export function normalizeProfile(p: Partial<Profile>): Profile {
   base.stars = Math.min(MAX_STARS, Math.max(1, p.stars ?? START_STARS));
   base.outfit = p.outfit ?? {};
   base.explored = p.explored ?? '';
-  // Die Karte wächst nach Norden: ältere, kürzere Stände werden oben aufgefüllt
-  const full = GRID * GRID_Z;
-  if (base.explored.length > 0 && base.explored.length < full && base.explored.length % GRID === 0) base.explored = '0'.repeat(full - base.explored.length) + base.explored;
   base.sudoku = p.sudoku ?? 0;
   base.areaLevels = p.areaLevels ?? {};
   base.talked = p.talked ?? {};
@@ -48,6 +71,7 @@ export function normalizeProfile(p: Partial<Profile>): Profile {
   const legacy = (p as { rupees?: number }).rupees;
   if (legacy && !p.coins) addCoins(base.coins, coinBreakdown(legacy));
   base.areas = p.areas ?? [];
+  base.explored = migrateExplored(base.explored, base.areas);
   base.inventory = p.inventory ?? {};
   base.chests = p.chests ?? {};
   base.found = p.found ?? [];
@@ -66,6 +90,15 @@ export function normalizeProfile(p: Partial<Profile>): Profile {
     });
     base.nextUid = Math.max(base.nextUid, base.built[base.built.length - 1].uid + 1);
   }
+  if (!p.layoutV2) {
+    for (const b of base.built) {
+      if (b.z >= -62) continue;
+      const old = OLD_AREAS.reduce((best, a) => (Math.abs(a.z - b.z) < Math.abs(best.z - b.z) ? a : best));
+      const to = AREAS.find((a) => a.id === old.id);
+      if (to && Math.abs(old.z - b.z) < 60) { b.x += to.center.x; b.z += to.center.z - old.z; }
+    }
+  }
+  base.layoutV2 = true;
   return base;
 }
 

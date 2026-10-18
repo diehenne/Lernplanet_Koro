@@ -4,7 +4,7 @@ import { groundTexture, groundBump, pathTexture } from './textures';
 import { sfx } from '../ui/sfx';
 import type { Op, Profile } from '../core/types';
 import { OPS } from '../core/types';
-import { AREAS, BIOME_CENTER, DOG_STATION, ENGLISH, GRID, GRID_Z, Z0, Z1, areaAt, areaById, areaStations, portalStations, HALF, HUB_SPAWN, biomeAt, cellOf, extraStations, heightAt, villageOf, type Station } from '../core/layout';
+import { AREAS, BIOME_CENTER, DOG_STATION, ENGLISH, GRID, GRID_Z, X0, X1, Z0, Z1, areaAt, areaById, areaStations, portalStations, HUB_SPAWN, biomeAt, cellOf, extraStations, heightAt, villageOf, type Station } from '../core/layout';
 import { chestLoot, treasureLoot, type Loot } from '../core/loot';
 import { earn } from '../core/money';
 import { addItem, bagSize, itemById, pickUp, place } from '../core/shop';
@@ -377,9 +377,9 @@ export class World {
 
   private buildWorld(): void {
     const g = this.worldGroup;
-    const size = HALF * 2 + 24;
+    const size = X1 - X0 + 24;
     const depth = Z1 - Z0 + 24;
-    const geo = new THREE.PlaneGeometry(size, depth, 220, Math.round(220 * depth / size));
+    const geo = new THREE.PlaneGeometry(size, depth, Math.round(size), Math.round(depth));
     geo.rotateX(-Math.PI / 2);
     geo.translate(0, 0, (Z0 + Z1) / 2);
     const pos = geo.attributes.position;
@@ -390,7 +390,7 @@ export class World {
       const h = heightAt(hx, hz);
       pos.setY(i, h);
       blend(hx, hz, (op) => new THREE.Color(THEMES[op].ground), c);
-      c.lerp(NORTH_GREEN, smoothstep(62, 92, -hz));
+      c.lerp(NORTH_GREEN, smoothstep(62, 92, Math.max(Math.abs(hx), Math.abs(hz))));
       for (const ar of AREAS) {
         if (ar.id === 'english') continue;
         const d = Math.hypot(hx - ar.center.x, hz - ar.center.z);
@@ -492,13 +492,13 @@ export class World {
     const rng = seeded(777);
     const step = 6.5;
     const put = (x: number, z: number) => this.addDecor(createMountain(rng), x, z, 1.4 + rng() * 0.6, 2.6, 99);
-    for (let t = -HALF; t <= HALF; t += step) {
+    for (let t = X0; t <= X1; t += step) {
       put(t, Z0 - 1.5);
       put(t, Z1 + 1.5);
     }
     for (let t = Z0; t <= Z1; t += step) {
-      put(-HALF - 1.5, t);
-      put(HALF + 1.5, t);
+      put(X0 - 1.5, t);
+      put(X1 + 1.5, t);
     }
   }
 
@@ -714,13 +714,33 @@ ${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
     this.obstacles.push({ x: st.x - 1.5, z: st.z - 1.6, r: 0.5, h: 99, kind: 'solid' }, { x: st.x + 1.5, z: st.z - 1.6, r: 0.5, h: 99, kind: 'solid' });
   }
 
-  /** Weg und Wildnis zwischen Mathe-Welten und Englisch-Land. */
+  /** Wege vom Marktplatz zu den Bereichen und zwischen den Bereichen, dazu Wildnis dazwischen. */
   private buildNorthStrip(): void {
     const rng = seeded(555);
-    this.road(0, -50, 0, -122, 0, 72, 4, 0xd8c79a);
-    for (let i = 0; i < 90; i++) {
-      const x = (rng() * 2 - 1) * (HALF - 3), z = -60 - rng() * 44;
-      if (Math.abs(x) < 5 || areaAt(x, z)) continue;
+    const segs: [number, number, number, number][] = [];
+    const link = (ax: number, az: number, bx: number, bz: number, from: number) => {
+      const len = Math.hypot(bx - ax, bz - az);
+      this.road(ax, az, bx, bz, from, len - 14, 4, 0xd8c79a);
+      segs.push([ax, az, bx, bz]);
+    };
+    const by = (id: string) => AREAS.find((a) => a.id === id)!.center;
+    const [en, ge, gn, su, pu] = ['english', 'german', 'general', 'sudoku', 'puzzle'].map(by);
+    link(0, 0, en.x, en.z, 9);
+    link(0, 0, su.x, su.z, 9);
+    link(0, 0, pu.x, pu.z, 9);
+    link(en.x, en.z, ge.x, ge.z, 14);
+    link(en.x, en.z, gn.x, gn.z, 14);
+    link(su.x, su.z, ge.x, ge.z, 14);
+    link(pu.x, pu.z, gn.x, gn.z, 14);
+    const near = (x: number, z: number): boolean => segs.some(([ax, az, bx, bz]) => {
+      const vx = bx - ax, vz = bz - az;
+      const t = Math.min(1, Math.max(0, ((x - ax) * vx + (z - az) * vz) / (vx * vx + vz * vz)));
+      return Math.hypot(x - ax - vx * t, z - az - vz * t) < 5;
+    });
+    for (let i = 0; i < 320; i++) {
+      const x = X0 + 6 + rng() * (X1 - X0 - 12), z = Z0 + 6 + rng() * (Z1 - Z0 - 12);
+      if (Math.abs(x) < 68 && z > -68) continue;
+      if (AREAS.some((a) => Math.hypot(x - a.center.x, z - a.center.z) < a.radius + 2) || near(x, z)) continue;
       const k = i % 4;
       if (k === 0) this.addDecor(createRock(rng, 0xa9b0a0), x, z, 0.8 + rng() * 0.7, 0.9, 0.7, 'solid', rng() * 6);
       else if (k === 1) this.addDecor(createMushroom(), x, z, 0.8 + rng(), 0.4, 0.5, 'solid', rng() * 6);
@@ -840,13 +860,7 @@ ${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
   }
 
   private buildAreas(): void {
-    AREAS.forEach((a, i) => {
-      this.buildArea(a, 2024 + i * 97);
-      if (i > 0) {
-        const from = AREAS[i - 1].center.z - 14, to = a.center.z + 14;
-        this.road(0, from, 0, to, 0, from - to, 4, 0xd8c79a);
-      }
-    });
+    AREAS.forEach((a, i) => this.buildArea(a, 2024 + i * 97));
   }
 
   private addStationRing(s: Station): void {
@@ -1072,7 +1086,7 @@ ${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
       if (x - r < b.x0 || x + r > b.x1 || z - r < b.z0 || z + r > b.z1) return false;
       if (Math.hypot(x - int.int.exit.x, z - int.int.exit.z) < 1.6) return false;
     } else {
-      if (Math.abs(x) > HALF - 2 || z > Z1 - 2 || z < Z0 + 2) return false;
+      if (x > X1 - 2 || x < X0 + 2 || z > Z1 - 2 || z < Z0 + 2) return false;
       if (this.stations.some((s) => Math.hypot(s.x - x, s.z - z) < 2.4 + r)) return false;
       if (this.houses.some((h) => { const d = this.doorPoint(h); return Math.hypot(d.x - x, d.z - z) < 1.8 + r; })) return false;
     }
@@ -1328,8 +1342,7 @@ ${edge ? 'diffuseColor.a *= smoothstep(0.0, 1.0, vEdge);' : ''}`);
         p.x = Math.min(b.x1, Math.max(b.x0, p.x));
         p.z = Math.min(b.z1, Math.max(b.z0, p.z));
       } else {
-        const lim = HALF - 0.6;
-        p.x = Math.min(lim, Math.max(-lim, p.x));
+        p.x = Math.min(X1 - 0.6, Math.max(X0 + 0.6, p.x));
         p.z = Math.min(Z1 - 0.6, Math.max(Z0 + 0.6, p.z));
       }
 

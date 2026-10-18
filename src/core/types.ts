@@ -53,6 +53,8 @@ export interface Profile {
   outfit: Record<string, string>;
   /** Entdeckte Kartenfelder als Zeichenkette aus 0/1. */
   explored: string;
+  /** Gesetzt, sobald der Spielstand auf die Ringanordnung der Bereiche umgestellt ist. */
+  layoutV2?: boolean;
   /** Geschichten-Fortschritt je Korok. */
   talked: Record<string, number>;
 }

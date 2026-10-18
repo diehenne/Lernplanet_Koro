@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { conflicts, countSolutions, makeSudoku, sudokuForLevel, SUDOKU_4, SUDOKU_6 } from './sudoku';
 import { makeRiddle } from './riddles';
-import { AREAS, areaStations, GRID, GRID_Z, Z0, cellOf } from './layout';
+import { AREAS, areaStations, GRID, GRID_Z, Z0, X0, X1, cellOf } from './layout';
 import { normalizeProfile } from './adaptive';
 
 const rng = (() => {
@@ -46,19 +46,22 @@ describe('Lernaufgaben', () => {
 });
 
 describe('Bereiche', () => {
-  it('liegen hintereinander im Kartenbereich', () => {
+  it('liegen rund um den Marktplatz im Kartenbereich', () => {
     for (const a of AREAS) {
       expect(areaStations(a)).toHaveLength(5);
       expect(a.center.z - a.radius).toBeGreaterThan(Z0);
+      expect(a.center.x - a.radius).toBeGreaterThan(X0);
+      expect(a.center.x + a.radius).toBeLessThan(X1);
       expect(cellOf(a.center.x, a.center.z)).toBeLessThan(GRID * GRID_Z);
     }
     const ids = new Set(AREAS.map((a) => a.id));
     expect(ids.size).toBe(AREAS.length);
   });
-  it('ältere kürzere Karten werden im Norden aufgefüllt', () => {
-    const p = normalizeProfile({ explored: '1'.repeat(GRID * 31) });
+  it('alte Karten werden auf das neue Raster übertragen', () => {
+    const p = normalizeProfile({ explored: '1'.repeat(31 * 31) });
     expect(p.explored.length).toBe(GRID * GRID_Z);
-    expect(p.explored.endsWith('1'.repeat(GRID * 31))).toBe(true);
+    expect(p.explored[cellOf(0, 0)]).toBe('1');
+    expect(p.explored[cellOf(0, -100)]).toBe('0');
   });
 });
 
