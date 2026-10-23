@@ -62,30 +62,27 @@ export function createInput(joystick: HTMLElement): InputState {
   window.addEventListener('keyup', (e) => { keys.delete(e.key.toLowerCase()); update(); });
   window.addEventListener('blur', () => { keys.clear(); update(); });
 
+  // Schwebender Stick: erscheint nur beim Drücken auf der linken Bildschirmseite
   const knob = joystick.querySelector<HTMLElement>('.knob')!;
   const R = 46;
   let active: number | null = null;
+  let center = { x: 0, y: 0 };
   const move = (e: PointerEvent) => {
-    const r = joystick.getBoundingClientRect();
-    let dx = e.clientX - (r.left + r.width / 2);
-    let dy = e.clientY - (r.top + r.height / 2);
+    let dx = e.clientX - center.x;
+    let dy = e.clientY - center.y;
     const len = Math.hypot(dx, dy);
     if (len > R) { dx = (dx / len) * R; dy = (dy / len) * R; }
     knob.style.transform = `translate(${dx}px, ${dy}px)`;
     stick = { x: dx / R, y: -dy / R };
     update();
   };
-  joystick.addEventListener('pointerdown', (e) => { active = e.pointerId; joystick.setPointerCapture(e.pointerId); move(e); });
-  joystick.addEventListener('pointermove', (e) => { if (e.pointerId === active) move(e); });
-  const end = (e: PointerEvent) => {
-    if (e.pointerId !== active) return;
+  const endStick = () => {
     active = null;
+    joystick.classList.remove('on');
     knob.style.transform = '';
     stick = { x: 0, y: 0 };
     update();
   };
-  joystick.addEventListener('pointerup', end);
-  joystick.addEventListener('pointercancel', end);
 
   // Kamera per Wischen auf der Spielfläche (Touch/Stift); Wischweg → Drehrate
   const canvas = document.querySelector<HTMLElement>('canvas');
@@ -96,18 +93,33 @@ export function createInput(joystick: HTMLElement): InputState {
   if (canvas) {
     canvas.style.touchAction = 'none';
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' || swipe !== null) return;
+      if (e.pointerType === 'mouse') return;
+      if (e.clientX < innerWidth * 0.45 && active === null) {
+        active = e.pointerId;
+        center = { x: e.clientX, y: e.clientY };
+        joystick.style.left = `${e.clientX}px`;
+        joystick.style.top = `${e.clientY}px`;
+        joystick.classList.add('on');
+        canvas.setPointerCapture(e.pointerId);
+        move(e);
+        return;
+      }
+      if (swipe !== null) return;
       swipe = e.pointerId;
       last = { x: e.clientX, y: e.clientY };
       canvas.setPointerCapture(e.pointerId);
     });
     canvas.addEventListener('pointermove', (e) => {
+      if (e.pointerId === active) { move(e); return; }
       if (e.pointerId !== swipe) return;
       acc.x += e.clientX - last.x;
       acc.y += e.clientY - last.y;
       last = { x: e.clientX, y: e.clientY };
     });
-    const stop = (e: PointerEvent) => { if (e.pointerId === swipe) swipe = null; };
+    const stop = (e: PointerEvent) => {
+      if (e.pointerId === active) endStick();
+      if (e.pointerId === swipe) swipe = null;
+    };
     canvas.addEventListener('pointerup', stop);
     canvas.addEventListener('pointercancel', stop);
   }
