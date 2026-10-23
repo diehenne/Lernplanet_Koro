@@ -276,3 +276,6 @@ button.danger { background: #e0483e; box-shadow: 0 5px 0 #a02820; color: #fff; }
 @media (max-height: 520px) and (min-width: 601px) {
   .regions { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* Auf gelbem/orangem Grund immer dunkle Schrift */
+.region.mul .go, .coin.c10 { color: var(--ink); text-shadow: none; }
