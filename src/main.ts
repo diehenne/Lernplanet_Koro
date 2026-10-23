@@ -736,3 +736,9 @@ const unlockAudio = (): void => {
 addEventListener('pointerdown', unlockAudio);
 addEventListener('keydown', unlockAudio);
 addEventListener('padpress', unlockAudio);
+
+// Verhindert das Wackeln der Browser-Leiste (iPad): Seite scrollt/zoomt nie, nur Menüs dürfen scrollen
+document.addEventListener('touchmove', (e) => {
+  if (!(e.target as HTMLElement).closest?.('.panel')) e.preventDefault();
+}, { passive: false });
+document.addEventListener('gesturestart', (e) => e.preventDefault());
