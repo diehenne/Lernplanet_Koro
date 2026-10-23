@@ -71,9 +71,10 @@ export function runSudoku(spec: SudokuUiSpec): void {
     ring.style.display = 'block';
     const k = wrapEl.offsetWidth ? wrap.width / wrapEl.offsetWidth : 1;
     const reach = (n > 6 ? 105 : 90) * k;
-    const clamp = (v: number, max: number): number => (max < 2 * reach ? max / 2 : Math.min(Math.max(v, reach), max - reach));
-    const cx = clamp(r.left + r.width / 2, innerWidth);
-    const cy = clamp(r.top + r.height / 2, innerHeight);
+    const panel = (wrapEl.closest('.panel') ?? wrapEl).getBoundingClientRect();
+    const lo = (v: number, min: number, max: number): number => (max - min < 2 * reach ? (min + max) / 2 : Math.min(Math.max(v, min + reach), max - reach));
+    const cx = lo(r.left + r.width / 2, Math.max(0, panel.left), Math.min(innerWidth, panel.right));
+    const cy = lo(r.top + r.height / 2, Math.max(0, panel.top), Math.min(innerHeight, panel.bottom));
     ring.style.left = `${(cx - wrap.left) / k}px`;
     ring.style.top = `${(cy - wrap.top) / k}px`;
     const rad = n > 6 ? 82 : 66;
@@ -120,9 +121,9 @@ export function runSudoku(spec: SudokuUiSpec): void {
 
   const bad0 = new Set<number>();
   const cells = grid.map((v, i) => `<button class="${cls(i, bad0)}" data-i="${i}">${v || '&nbsp;'}</button>`).join('');
-  spec.root.innerHTML = `<div class="panel center"><h2>🔢 ${de.sudoku.title} <small>${n}×${n}</small></h2>
+  spec.root.innerHTML = `<div class="panel center sudoku-panel"><h2>🔢 ${de.sudoku.title} <small>${n}×${n}</small></h2>
     <p class="hint" id="shint">${de.sudoku.help}</p>
-    <div class="sudoku-wrap"><div class="sudoku" style="--n:${n};grid-template-columns:repeat(${n},1fr)">${cells}</div><div id="numring" class="numring"></div></div>
+    <div class="sudoku-wrap"><div class="sudoku" style="--n:${n};grid-template-columns:repeat(${n},var(--cs,52px));grid-template-rows:repeat(${n},var(--cs,52px))">${cells}</div><div id="numring" class="numring"></div></div>
     <div><button class="alt" id="abort">✖ ${de.abort}</button></div></div>`;
   cellEls().forEach((b) =>
     b.addEventListener('click', () => {
