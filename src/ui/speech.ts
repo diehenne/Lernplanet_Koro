@@ -24,11 +24,26 @@ function stop(): void {
   playing = [];
 }
 
+/** Normal per Netz geladen; in der Ein-Datei-Version aus dem eingebetteten Paket. */
+async function bytesOf(file: string): Promise<ArrayBuffer> {
+  if (__SINGLE__) {
+    const pack = (await import('virtual:audio-pack')).default;
+    const b64 = pack[file];
+    if (!b64) throw new Error('fehlt');
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out.buffer;
+  }
+  const r = await fetch(`${import.meta.env.BASE_URL}audio/${file}.mp3`);
+  if (!r.ok) throw new Error(String(r.status));
+  return r.arrayBuffer();
+}
+
 function load(file: string): Promise<AudioBuffer | null> {
   let p = cache.get(file);
   if (!p) {
-    p = fetch(`${import.meta.env.BASE_URL}audio/${file}.mp3`)
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+    p = bytesOf(file)
       .then((buf) => ctx!.decodeAudioData(buf))
       .catch(() => {
         console.warn('Audio-Baustein fehlt:', file);
