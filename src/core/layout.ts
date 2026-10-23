@@ -133,8 +133,8 @@ export const AREAS: Area[] = [
   mkArea('sudoku', 'Sudoku-Hügel', '🔢', -SPACING, 0, 0xc9b8f0, [170, 150, 225]),
   mkArea('puzzle', 'Rätsel-Berg', '🧩', SPACING, 0, 0xf0b0a0, [230, 140, 130]),
 ];
-/** Bello, der Hund auf dem Marktplatz (Rechen-Rennen). */
-export const DOG_STATION: Station = { id: 'dog', op: 'add', x: -2.2, z: -3.2 };
+/** Bello, der Hund zwischen Plus-Wald und Minus-Berge (Rechen-Rennen). */
+export const DOG_STATION: Station = { id: 'dog', op: 'add', x: 0, z: -30 };
 /** Bauarbeiter auf dem Sudoku-Hügel (Zahlenmauer). */
 export const WALL_STATION: Station = { id: 'wall', op: 'add', x: -SPACING - 22, z: -18 };
 export const HUB_PORTAL = { x: 0, z: -9.5 };
