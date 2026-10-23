@@ -256,3 +256,23 @@ button.danger { background: #e0483e; box-shadow: 0 5px 0 #a02820; color: #fff; }
   .task-big { font-size: clamp(24px, 9vw, 40px); }
   .goods { grid-template-columns: 1fr; }
 }
+
+/* Bereichswahl kompakt auf kleinen Bildschirmen */
+@media (max-height: 520px), (max-width: 600px) {
+  .center { width: min(96vw, 900px); }
+  .regions { gap: 6px; }
+  .region { padding: 3px; border-radius: 16px; }
+  .region .go { font-size: 14px; min-height: 0; padding: 4px 6px; margin: 2px 0; line-height: 1.15; }
+  .region .big { font-size: 24px; }
+  .region button:not(.go) { min-width: 34px; min-height: 34px; font-size: 16px; padding: 0 8px; margin: 2px; }
+  .stepper { font-size: 14px; gap: 2px; }
+  .stepper button { min-width: 34px; min-height: 34px; font-size: 16px; padding: 0 8px; margin: 2px; }
+  .areacard { margin: 3px; }
+  .center .hubgo, .center #resume2 { min-height: 0; padding: 4px 10px; margin: 3px; }
+  .center h2 { margin: 0 0 6px; }
+  .hubgo { margin-top: 4px; }
+  .center button.go, .center .hubgo { font-size: 15px; }
+}
+@media (max-height: 520px) and (min-width: 601px) {
+  .regions { grid-template-columns: repeat(4, 1fr); }
+}
