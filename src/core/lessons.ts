@@ -24,7 +24,7 @@ function nearNumbers(rng: Rng, right: number, step = 1): string[] {
   while (set.size < 2 && guard++ < 50) {
     const d = (1 + Math.floor(rng() * 3)) * step * (rng() < 0.5 ? -1 : 1);
     const v = right + d;
-    if (v !== right && v >= 0) set.add(v);
+    if (v !== right && v >= 1) set.add(v);
   }
   return [...set].map(String);
 }
@@ -46,9 +46,9 @@ export const PLURALS: [string, string, string, string][] = [
   ['Katze', 'Katzen', 'Katzes', 'Katzer'],
   ['Kind', 'Kinder', 'Kinden', 'Kinds'],
   ['Baum', 'Bäume', 'Baume', 'Baums'],
-  ['Buch', 'Bücher', 'Buchs', 'Buche'],
+  ['Buch', 'Bücher', 'Buchs', 'Büche'],
   ['Apfel', 'Äpfel', 'Apfels', 'Apfeln'],
-  ['Haus', 'Häuser', 'Hause', 'Hauser'],
+  ['Haus', 'Häuser', 'Hausen', 'Hauser'],
   ['Maus', 'Mäuse', 'Mause', 'Mausen'],
   ['Ball', 'Bälle', 'Balle', 'Balls'],
   ['Blume', 'Blumen', 'Blumes', 'Blume'],
@@ -136,7 +136,7 @@ export const SPELLING_RULES: [string, string, string, string, string][] = [
   ['Der Za_n wackelt.', 'h', 'ch', 'k', 'Zahn mit Dehnungs-h.'],
   ['Wir sp_len Fußball.', 'ie', 'i', 'ii', 'spielen mit ie.'],
   ['Die Sch_le beginnt.', 'u', 'ü', 'o', 'Schule mit u.'],
-  ['Der Sti_ ist spitz.', 'ft', 'f', 'cht', 'Stift mit ft.'],
+  ['Der Sti_ ist spitz.', 'ft', 'f', 'pf', 'Stift mit ft.'],
   ['Ein Gl_s Milch', 'a', 'ä', 'e', 'Glas mit a.'],
 ];
 
@@ -199,7 +199,7 @@ export const GENERAL: [string, string, string, string, string][] = [
   ['📅 Wie viele Monate hat ein Jahr?', '12', '10', '11', 'Ein Jahr hat 12 Monate.'],
   ['🐝 Was machen Bienen aus Nektar?', 'Honig', 'Milch', 'Zucker', 'Bienen machen Honig.'],
   ['🐄 Was gibt uns die Kuh?', 'Milch', 'Eier', 'Wolle', 'Kühe geben Milch.'],
-  ['🐑 Was gibt uns das Schaf?', 'Wolle', 'Milch', 'Eier', 'Schafe geben Wolle.'],
+  ['🐑 Was gibt uns das Schaf?', 'Wolle', 'Federn', 'Eier', 'Schafe geben Wolle.'],
   ['🐔 Was legt das Huhn?', 'Eier', 'Nüsse', 'Steine', 'Hühner legen Eier.'],
   ['🦋 Woraus wird ein Schmetterling?', 'Raupe', 'Käfer', 'Wurm', 'Aus der Raupe wird ein Schmetterling.'],
   ['🐸 Was wird aus einer Kaulquappe?', 'Frosch', 'Fisch', 'Schlange', 'Aus der Kaulquappe wird ein Frosch.'],
@@ -256,12 +256,12 @@ export function makeGeneral(rng: Rng): Riddle {
 /** [Rätsel, richtig, falsch, falsch, Hinweis] */
 export const BRAINTEASERS: [string, string, string, string, string][] = [
   ['Was hat Zähne, aber beißt nicht?', 'Ein Kamm', 'Ein Hund', 'Ein Apfel', 'Ein Kamm hat Zähne zum Kämmen.'],
-  ['Was wird nasser, je mehr es trocknet?', 'Ein Handtuch', 'Ein Schwamm', 'Ein Regenschirm', 'Das Handtuch nimmt das Wasser auf.'],
+  ['Was wird nasser, je mehr es trocknet?', 'Ein Handtuch', 'Ein Stein', 'Ein Regenschirm', 'Das Handtuch nimmt das Wasser auf.'],
   ['Was hat vier Beine, kann aber nicht laufen?', 'Ein Tisch', 'Ein Hund', 'Ein Vogel', 'Ein Tisch steht auf vier Beinen.'],
   ['Was geht den ganzen Tag, kommt aber nie vom Fleck?', 'Eine Uhr', 'Ein Hund', 'Ein Auto', 'Der Zeiger geht im Kreis.'],
   ['Ich habe Städte, aber keine Häuser, Berge, aber keine Bäume. Was bin ich?', 'Eine Landkarte', 'Ein Buch', 'Ein Spiegel', 'Auf einer Landkarte ist alles nur gezeichnet.'],
   ['Was wird größer, wenn man etwas wegnimmt?', 'Ein Loch', 'Ein Berg', 'Ein Kuchen', 'Je mehr man wegnimmt, desto größer das Loch.'],
-  ['Was hat einen Hals, aber keinen Kopf?', 'Eine Flasche', 'Ein Hemd', 'Ein Stuhl', 'Die Flasche hat einen Flaschenhals.'],
+  ['Was hat einen Hals, aber keinen Kopf?', 'Eine Flasche', 'Ein Ball', 'Ein Stuhl', 'Die Flasche hat einen Flaschenhals.'],
   ['Was hat Flügel, aber fliegt nicht, und dreht sich im Wind?', 'Eine Windmühle', 'Ein Vogel', 'Ein Flugzeug', 'Die Flügel der Windmühle drehen sich.'],
   ['Was kommt einmal in der Minute vor, zweimal im Moment und nie in tausend Jahren?', 'Der Buchstabe M', 'Eine Uhr', 'Ein Stern', 'Zähle die Ms in den Wörtern!'],
   ['Was hat ein Auge, kann aber nicht sehen?', 'Eine Nadel', 'Ein Stein', 'Ein Ball', 'Das Nadelöhr heißt auch Nadelauge.'],

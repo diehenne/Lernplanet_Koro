@@ -23,7 +23,7 @@ describe('Aufgabengenerator', () => {
             expect(Number.isInteger(t.answer)).toBe(true);
             expect(t.answer).toBeGreaterThanOrEqual(1);
             expect(Math.max(t.a, t.answer)).toBeLessThanOrEqual(100);
-            if (kind === 'add-20') expect(t.answer).toBeGreaterThan(10);
+            if (kind === 'add-20') expect(t.answer).toBeLessThanOrEqual(20);
             if (kind.startsWith('add-100-bridge')) expect((t.a % 10) + (t.b % 10)).toBeGreaterThanOrEqual(10);
             if (kind.startsWith('sub-100-bridge')) expect(t.a % 10).toBeLessThan(t.b % 10);
             if (kind === 'sub-100-plain') expect(t.a % 10).toBeGreaterThanOrEqual(t.b % 10);

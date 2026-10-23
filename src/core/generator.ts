@@ -65,8 +65,13 @@ export function makeTask(op: Op, kind: string, level: number, rng: Rng = Math.ra
   let b = 0;
   switch (kind) {
     case 'add-20':
-      a = randInt(rng, 2, 18);
-      b = randInt(rng, Math.max(2, 11 - a), 20 - a);
+      if (rng() < 0.4) {
+        a = randInt(rng, 2, 8);
+        b = randInt(rng, 2, 10 - a);
+      } else {
+        a = randInt(rng, 2, 18);
+        b = randInt(rng, Math.max(2, 11 - a), 20 - a);
+      }
       break;
     case 'add-tens':
       if (rng() < 0.5) {
@@ -97,6 +102,11 @@ export function makeTask(op: Op, kind: string, level: number, rng: Rng = Math.ra
       break;
     }
     case 'sub-20': {
+      if (rng() < 0.4) {
+        a = randInt(rng, 5, 10);
+        b = randInt(rng, 2, a - 2);
+        break;
+      }
       const o = randInt(rng, 1, 8);
       a = 10 + o;
       b = randInt(rng, o + 1, 9);

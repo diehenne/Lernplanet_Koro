@@ -15,7 +15,7 @@ export interface Riddle {
   en?: string;
 }
 
-const SPELL: [string, string, string, string][] = [
+export const SPELL: [string, string, string, string][] = [
   ['🐴', 'Pferd', 'Pfert', 'Ferd'], ['🚲', 'Fahrrad', 'Farrad', 'Fahrat'], ['🏠', 'Haus', 'Hauß', 'Hous'],
   ['🐱', 'Katze', 'Kaze', 'Katse'], ['🐶', 'Hund', 'Hunt', 'Hundt'], ['🌞', 'Sonne', 'Sone', 'Zonne'],
   ['🍎', 'Apfel', 'Apfell', 'Apvel'], ['🍌', 'Banane', 'Bannane', 'Banahne'], ['📖', 'Buch', 'Buhc', 'Bouch'],
@@ -29,18 +29,18 @@ const SPELL: [string, string, string, string][] = [
   ['🐢', 'Schildkröte', 'Schildkrete', 'Shildkröte'], ['🐸', 'Frosch', 'Frossch', 'Frosck'],
 ];
 
-const GAP: [string, string, string, string][] = [
-  ['Sp_gel', 'ie', 'i', 'ih'], ['Z_l', 'ie', 'i', 'ih'], ['B_ne', 'ie', 'i', 'ih'], ['K_ste', 'i', 'ie', 'ü'],
+export const GAP: [string, string, string, string][] = [
+  ['Sp_gel', 'ie', 'i', 'ih'], ['Z_l', 'ie', 'i', 'ih'], ['B_ne', 'ie', 'i', 'ih'], ['K_ste', 'i', 'ie', 'a'],
   ['B_r', 'ä', 'e', 'ee'], ['M_dchen', 'ä', 'e', 'ö'], ['K_se', 'ä', 'e', 'ö'], ['W_ld', 'a', 'ä', 'o'],
-  ['H_ser', 'äu', 'eu', 'au'], ['M_se', 'äu', 'eu', 'ei'], ['Fr_nd', 'eu', 'äu', 'oi'], ['B_me', 'äu', 'eu', 'ei'],
+  ['H_ser', 'äu', 'eu', 'au'], ['M_se', 'äu', 'eu', 'oi'], ['Fr_nd', 'eu', 'äu', 'oi'], ['B_me', 'äu', 'eu', 'ei'],
   ['Be_', 'tt', 't', 'dd'], ['Ka_e', 'tz', 'z', 'ts'], ['Mü_e', 'tz', 'z', 'ts'], ['Pla_', 'tz', 'z', 'ts'],
   ['Ja_e', 'ck', 'k', 'gg'], ['Zu_er', 'ck', 'k', 'gg'], ['Fi_', 'sch', 'ch', 's'], ['_ule', 'Sch', 'Ch', 'S'],
-  ['_iff', 'Sch', 'Ch', 'S'], ['Fu_', 'ß', 'ss', 's'], ['Stra_e', 'ß', 'ss', 's'], ['Wa_er', 'ss', 's', 'ß'],
+  ['_iff', 'Sch', 'Ch', 'Sp'], ['Fu_', 'ß', 'ss', 's'], ['Stra_e', 'ß', 'ss', 's'], ['Wa_er', 'ss', 's', 'ß'],
   ['_ogel', 'V', 'F', 'W'], ['_ater', 'V', 'F', 'W'], ['Hun_', 'd', 't', 'dt'], ['Ber_', 'g', 'k', 'ch'],
-  ['Bro_', 't', 'd', 'dt'], ['Kin_', 'd', 't', 'dt'], ['Nu_', 'ss', 's', 'ß'],
+  ['Bro_', 't', 'd', 'dt'], ['Kin_', 'd', 't', 'dt'], ['Nu_', 'ss', 's', 'z'],
 ];
 
-const VOCAB: [string, string, string][] = [
+export const VOCAB: [string, string, string][] = [
   ['cat', 'Katze', '🐱'], ['dog', 'Hund', '🐶'], ['house', 'Haus', '🏠'], ['tree', 'Baum', '🌳'], ['sun', 'Sonne', '☀️'],
   ['moon', 'Mond', '🌙'], ['star', 'Stern', '⭐'], ['water', 'Wasser', '💧'], ['apple', 'Apfel', '🍎'], ['bread', 'Brot', '🍞'],
   ['milk', 'Milch', '🥛'], ['book', 'Buch', '📖'], ['school', 'Schule', '🏫'], ['car', 'Auto', '🚗'], ['bike', 'Fahrrad', '🚲'],
@@ -56,7 +56,7 @@ const VOCAB: [string, string, string][] = [
   ['door', 'Tür', '🚪'], ['bed', 'Bett', '🛏️'], ['cake', 'Kuchen', '🍰'], ['egg', 'Ei', '🥚'], ['cheese', 'Käse', '🧀'],
 ];
 
-const SENT: [string, string, string, string][] = [
+export const SENT: [string, string, string, string][] = [
   ['I ___ a boy.', 'am', 'is', 'are'], ['She ___ my friend.', 'is', 'am', 'are'], ['We ___ happy.', 'are', 'is', 'am'],
   ['He ___ a dog.', 'has', 'have', 'are'], ['I ___ two cats.', 'have', 'has', 'is'], ['They ___ at school.', 'are', 'is', 'am'],
   ['It ___ a big house.', 'is', 'are', 'am'], ['You ___ my best friend.', 'are', 'is', 'am'], ['My name ___ Tom.', 'is', 'am', 'are'],
@@ -64,8 +64,8 @@ const SENT: [string, string, string, string][] = [
   ['How ___ you?', 'are', 'is', 'am'], ['What is ___ name? (dein)', 'your', 'you', 'yours'], ['This ___ my book.', 'is', 'are', 'am'],
   ['I can ___ a ball.', 'kick', 'kicks', 'kicking'], ['Can you ___ me, please?', 'help', 'helps', 'helping'], ['The sun is ___ . (gelb)', 'yellow', 'yelow', 'yello'],
 ];
-const EODD: [string, string[]][] = [
-  ['animals', ['dog', 'cat', 'horse', 'mouse', 'bird', 'fish']], ['colours', ['red', 'blue', 'green', 'yellow', 'black', 'white']],
+export const EODD: [string, string[]][] = [
+  ['animals', ['dog', 'cat', 'horse', 'mouse', 'bird', 'cow']], ['colours', ['red', 'blue', 'green', 'yellow', 'black', 'white']],
   ['food', ['apple', 'bread', 'milk', 'cake', 'egg', 'cheese']], ['family', ['mother', 'father', 'sister', 'brother']],
   ['numbers', ['two', 'three', 'four', 'five', 'six', 'ten']], ['body', ['hand', 'eye', 'nose', 'arm', 'leg', 'foot']],
   ['weather', ['rain', 'snow', 'sun', 'wind', 'cloud']], ['school', ['book', 'pen', 'desk', 'teacher', 'bag']],
@@ -80,7 +80,7 @@ const WRONG_SPELL = (w: string): string[] => {
   return [...out];
 };
 
-const ODD: [string, string[]][] = [
+export const ODD: [string, string[]][] = [
   ['Tiere', ['Hund', 'Katze', 'Pferd', 'Kuh', 'Schaf']], ['Obst', ['Apfel', 'Birne', 'Banane', 'Kirsche', 'Erdbeere']],
   ['Gemüse', ['Möhre', 'Gurke', 'Tomate', 'Kartoffel']], ['Fahrzeuge', ['Auto', 'Bus', 'Zug', 'Fahrrad', 'Schiff']],
   ['Farben', ['rot', 'blau', 'grün', 'gelb']], ['Möbel', ['Tisch', 'Stuhl', 'Bett', 'Schrank']],
@@ -90,14 +90,14 @@ const ODD: [string, string[]][] = [
   ['Schulsachen', ['Stift', 'Heft', 'Lineal', 'Radiergummi']],
 ];
 
-const OPPOSITE: [string, string][] = [
+export const OPPOSITE: [string, string][] = [
   ['groß', 'klein'], ['heiß', 'kalt'], ['hell', 'dunkel'], ['schnell', 'langsam'], ['laut', 'leise'], ['alt', 'jung'],
   ['dick', 'dünn'], ['hoch', 'tief'], ['lang', 'kurz'], ['schwer', 'leicht'], ['nass', 'trocken'], ['leer', 'voll'],
   ['früh', 'spät'], ['hart', 'weich'], ['Tag', 'Nacht'], ['oben', 'unten'], ['offen', 'geschlossen'], ['stark', 'schwach'],
   ['froh', 'traurig'], ['süß', 'sauer'],
 ];
 
-const FACTS: [string, string, string, string][] = [
+export const FACTS: [string, string, string, string][] = [
   ['Wie heißt die Hauptstadt von Deutschland?', 'Berlin', 'Hamburg', 'München'],
   ['Welche Farbe entsteht, wenn man Blau und Gelb mischt?', 'Grün', 'Orange', 'Lila'],
   ['Welches Tier legt Eier?', 'Das Huhn', 'Die Kuh', 'Der Hund'],
@@ -160,7 +160,23 @@ export function levelRiddle(r: Riddle, level: number, rng: Rng): Riddle {
   return { ...r, options, answer: options.indexOf(right) };
 }
 
+const RECENT: Partial<Record<RiddleKind, string[]>> = {};
+const RECENT_MAX = 12;
+
+/** Wie makeRiddleRaw, würfelt aber neu, wenn die Frage zuletzt schon vorkam. */
 export function makeRiddle(kind: RiddleKind, rng: Rng): Riddle {
+  const seen = (RECENT[kind] ??= []);
+  let r = makeRiddleRaw(kind, rng);
+  for (let i = 0; i < 25 && seen.includes(r.prompt + '|' + r.options[r.answer]); i++) r = makeRiddleRaw(kind, rng);
+  seen.push(r.prompt + '|' + r.options[r.answer]);
+  if (seen.length > RECENT_MAX) seen.shift();
+  return r;
+}
+
+const CONFLICT_GROUPS = [['hell', 'Tag', 'dunkel', 'Nacht'], ['hoch', 'oben', 'tief', 'unten']];
+const ODD_CLASH = new Set(['Obst|Gemüse', 'Gemüse|Obst']);
+
+function makeRiddleRaw(kind: RiddleKind, rng: Rng): Riddle {
   switch (kind) {
     case 'spell': {
       const [emoji, w, a, b] = pick(rng, SPELL);
@@ -181,7 +197,7 @@ export function makeRiddle(kind: RiddleKind, rng: Rng): Riddle {
     }
     case 'odd': {
       const [name, items] = pick(rng, ODD);
-      const other = pick(rng, ODD.filter((g) => g[0] !== name));
+      const other = pick(rng, ODD.filter((g) => g[0] !== name && !ODD_CLASH.has(`${name}|${g[0]}`)));
       const oddOne = pick(rng, other[1]);
       const two = shuffle(rng, items).slice(0, 2);
       return build(kind, rng, 'Was passt nicht dazu?', oddOne, two, `Die anderen gehören alle zu: ${name}.`);
@@ -190,12 +206,12 @@ export function makeRiddle(kind: RiddleKind, rng: Rng): Riddle {
       const [a, b] = pick(rng, OPPOSITE);
       const flip = rng() < 0.5;
       const [word, right] = flip ? [b, a] : [a, b];
-      return build(kind, rng, `Was ist das Gegenteil von „${word}“?`, right, others(rng, OPPOSITE.flat(), right, word), `Das Gegenteil von ${word} ist ${right}.`);
+      return build(kind, rng, `Was ist das Gegenteil von „${word}“?`, right, others(rng, OPPOSITE.flat().filter((x) => !CONFLICT_GROUPS.some((g) => g.includes(x) && (g.includes(word) || g.includes(right)))), right, word), `Das Gegenteil von ${word} ist ${right}.`);
     }
     case 'espell': {
       const [en, , emoji] = pick(rng, VOCAB.filter((v) => !v[0].includes(' ')));
       const wrong = shuffle(rng, WRONG_SPELL(en)).slice(0, 2);
-      if (wrong.length < 2) return makeRiddle('vocab', rng);
+      if (wrong.length < 2) return makeRiddleRaw('vocab', rng);
       const r = build(kind, rng, `${emoji} How do you spell it?`, en, wrong, `Richtig geschrieben: ${en}.`);
       r.en = en;
       return r;

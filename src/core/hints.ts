@@ -39,6 +39,7 @@ export function hintSteps(t: Task): string[] {
           `Dann den Rest: 10 − ${b - ones} = ${answer}.`,
         ];
       }
+      if (a <= 10) return [`Rechne die Umkehraufgabe: ${answer} + ${b} = ${a}.`];
       return [`Starte bei ${a} und gehe ${b} Schritte zurück.`, `Du landest bei ${answer}.`];
     }
     case 'mul': {

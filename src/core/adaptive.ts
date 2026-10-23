@@ -102,7 +102,22 @@ export function normalizeProfile(p: Partial<Profile>): Profile {
   return base;
 }
 
-let lastKey = '';
+const history: string[] = [];
+const HISTORY = 10;
+
+/** Plus und Mal sind vertauschbar: 3 + 4 und 4 + 3 gelten als dieselbe Aufgabe. */
+function taskKey(t: Task): string {
+  const [x, y] = t.op === 'add' || t.op === 'mul' ? [Math.min(t.a, t.b), Math.max(t.a, t.b)] : [t.a, t.b];
+  return `${t.op}${x}:${y}`;
+}
+
+/** Wiederholung: gleiche Aufgabe in den letzten Runden oder gleicher Zahlenanfang direkt hintereinander. */
+function repeated(t: Task, prevOps: Task | null): boolean {
+  if (history.includes(taskKey(t))) return true;
+  return !!prevOps && (t.a === prevOps.a || t.b === prevOps.b || t.answer === prevOps.answer);
+}
+
+let lastTask: Task | null = null;
 
 /** Wählt den Aufgabentyp gewichtet: Typen mit hoher Fehlerquote kommen häufiger. */
 export function nextTask(profile: Profile, op: Op, rng: Rng = Math.random): Task {
@@ -115,11 +130,14 @@ export function nextTask(profile: Profile, op: Op, rng: Rng = Math.random): Task
     const weight = 1 + Math.round(errRate * 4);
     for (let i = 0; i < weight; i++) weighted.push(k);
   }
+  const prev = lastTask && lastTask.op === op ? lastTask : null;
   let task = makeTask(op, pick(rng, weighted), level, rng);
-  for (let i = 0; i < 6 && `${task.op}${task.a}:${task.b}` === lastKey; i++) {
+  for (let i = 0; i < 40 && repeated(task, prev); i++) {
     task = makeTask(op, pick(rng, weighted), level, rng);
   }
-  lastKey = `${task.op}${task.a}:${task.b}`;
+  history.push(taskKey(task));
+  if (history.length > HISTORY) history.shift();
+  lastTask = task;
   return task;
 }
 
