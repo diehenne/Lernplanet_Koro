@@ -60,7 +60,7 @@ export function runEnglishRound(spec: EnglishSpec): void {
   const next = (): void => {
     if (index >= ROUND_LENGTH) return finish(false);
     index++;
-    const r = levelRiddle(makeRiddle(pick(Math.random, subject.kinds), Math.random), level, Math.random);
+    const r = levelRiddle(makeRiddle(pick(Math.random, subject.kinds), Math.random, level), level, Math.random);
     spec.root.innerHTML = `<div class="panel center talk"><h2>${subject.emoji} ${subject.title} <small>${index}/${ROUND_LENGTH} · ${de.level} ${level}</small></h2>
       <p class="task-big">${r.prompt}${r.en ? ` <button class="alt say" id="say">🔊</button>` : ''}</p>
       <div class="choices">${r.options.map((o, i) => `<button data-i="${i}">${o}</button>`).join('')}</div>

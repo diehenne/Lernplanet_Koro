@@ -1,5 +1,5 @@
 import { pick, type Rng } from './generator';
-import { makeGeneral, makeGerman, makePuzzle } from './lessons';
+import { setLessonLevel, makeGeneral, makeGerman, makePuzzle } from './lessons';
 
 /** Rätsel für die 2.–4. Klasse: Rechtschreibung, Englisch, Wortschatz und Sachkunde. */
 export type RiddleKind = 'spell' | 'gap' | 'vocab' | 'odd' | 'opposite' | 'fact' | 'order' | 'espell' | 'esent' | 'eodd' | 'german' | 'general' | 'puzzle';
@@ -122,6 +122,24 @@ export const FACTS: [string, string, string, string][] = [
   ['Wie nennt man Tiere, die nur Pflanzen fressen?', 'Pflanzenfresser', 'Fleischfresser', 'Allesfresser'],
 ];
 
+/** Schwerere Wissensfragen für höhere Stufen. */
+export const FACTS_HARD: [string, string, string, string][] = [
+  ['Wie heißt die Hauptstadt von Italien?', 'Rom', 'Mailand', 'Neapel'],
+  ['Wie heißt der längste Fluss Deutschlands?', 'Der Rhein', 'Die Elbe', 'Die Spree'],
+  ['Welcher Planet ist der Sonne am nächsten?', 'Merkur', 'Venus', 'Mars'],
+  ['Wie nennt man Tiere, die Fleisch und Pflanzen fressen?', 'Allesfresser', 'Pflanzenfresser', 'Fleischfresser'],
+  ['Wie nennt man ein Baby vom Schaf?', 'Lamm', 'Fohlen', 'Kitz'],
+  ['Wie viele Wochen hat ein Jahr ungefähr?', '52', '48', '60'],
+  ['Wie heißt die Hauptstadt von Polen?', 'Warschau', 'Krakau', 'Prag'],
+  ['Welches Tier ist ein Insekt?', 'Die Biene', 'Die Spinne', 'Die Schnecke'],
+  ['Was entsteht, wenn Wasser verdunstet und in der Luft abkühlt?', 'Wolken', 'Steine', 'Sand'],
+  ['Welcher Teil der Pflanze nimmt Wasser aus dem Boden auf?', 'Die Wurzel', 'Die Blüte', 'Das Blatt'],
+  ['Wie heißt der größte Kontinent der Erde?', 'Asien', 'Europa', 'Australien'],
+  ['Welche Jahreszeit beginnt im März?', 'Der Frühling', 'Der Sommer', 'Der Herbst'],
+  ['Was ist die Hauptstadt der Niederlande?', 'Amsterdam', 'Rotterdam', 'Brüssel'],
+  ['Wie viele Zähne hat ein Erwachsener normalerweise?', '32', '20', '40'],
+];
+
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -164,7 +182,9 @@ const RECENT: Partial<Record<RiddleKind, string[]>> = {};
 const RECENT_MAX = 12;
 
 /** Wie makeRiddleRaw, würfelt aber neu, wenn die Frage zuletzt schon vorkam. */
-export function makeRiddle(kind: RiddleKind, rng: Rng): Riddle {
+export function makeRiddle(kind: RiddleKind, rng: Rng, lvl = 3): Riddle {
+  setLessonLevel(lvl);
+  level = lvl;
   const seen = (RECENT[kind] ??= []);
   let r = makeRiddleRaw(kind, rng);
   for (let i = 0; i < 25 && seen.includes(r.prompt + '|' + r.options[r.answer]); i++) r = makeRiddleRaw(kind, rng);
@@ -175,6 +195,8 @@ export function makeRiddle(kind: RiddleKind, rng: Rng): Riddle {
 
 const CONFLICT_GROUPS = [['hell', 'Tag', 'dunkel', 'Nacht'], ['hoch', 'oben', 'tief', 'unten']];
 const ODD_CLASH = new Set(['Obst|Gemüse', 'Gemüse|Obst']);
+
+let level = 3;
 
 function makeRiddleRaw(kind: RiddleKind, rng: Rng): Riddle {
   switch (kind) {
@@ -236,7 +258,7 @@ function makeRiddleRaw(kind: RiddleKind, rng: Rng): Riddle {
     case 'puzzle':
       return makePuzzle(rng);
     case 'fact': {
-      const [q, r, a, b] = pick(rng, FACTS);
+      const [q, r, a, b] = pick(rng, rng() < (level <= 2 ? 0 : (level - 2) * 0.22) ? FACTS_HARD : FACTS);
       return build(kind, rng, q, r, [a, b], `Richtig ist: ${r}.`);
     }
     case 'order': {

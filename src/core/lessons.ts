@@ -12,6 +12,14 @@ function shuffle<T>(rng: Rng, list: T[]): T[] {
   return a;
 }
 
+let level = 3;
+/** Stufe (1–6) für die nächsten Aufgaben; steuert Schwierigkeit der Wissens- und Knobelfragen. */
+export function setLessonLevel(l: number): void {
+  level = Math.min(6, Math.max(1, l));
+}
+/** Wahrscheinlichkeit für eine schwere Frage: Stufe 1–2 nie, danach steigend. */
+const hardChance = (): number => (level <= 2 ? 0 : (level - 2) * 0.22);
+
 function mc(kind: RiddleKind, rng: Rng, prompt: string, right: string, wrong: string[], hint: string): Riddle {
   const options = shuffle(rng, [right, ...wrong.filter((w) => w !== right)]);
   return { kind, prompt, options, answer: options.indexOf(right), hint };
@@ -246,8 +254,43 @@ export const GENERAL: [string, string, string, string, string][] = [
   ['🎵 Welches Instrument hat schwarze und weiße Tasten?', 'Klavier', 'Flöte', 'Trommel', 'Das Klavier hat Tasten.'],
 ];
 
+/** Schwerere Fragen für höhere Stufen. */
+export const GENERAL_HARD: [string, string, string, string, string][] = [
+  ['🇪🇸 Wie heißt die Hauptstadt von Spanien?', 'Madrid', 'Barcelona', 'Lissabon', 'Madrid ist die Hauptstadt von Spanien.'],
+  ['🇬🇧 Wie heißt die Hauptstadt von Großbritannien?', 'London', 'Dublin', 'Manchester', 'London ist die Hauptstadt von Großbritannien.'],
+  ['🇨🇭 Wie heißt die Hauptstadt der Schweiz?', 'Bern', 'Zürich', 'Genf', 'Bern ist die Hauptstadt der Schweiz.'],
+  ['🌊 Welcher Fluss fließt durch Hamburg?', 'Elbe', 'Rhein', 'Isar', 'Hamburg liegt an der Elbe.'],
+  ['🌍 Auf welchem Kontinent liegt Ägypten?', 'Afrika', 'Asien', 'Europa', 'Ägypten liegt in Afrika.'],
+  ['🪐 Welcher Planet ist der größte in unserem Sonnensystem?', 'Jupiter', 'Saturn', 'Erde', 'Jupiter ist der größte Planet.'],
+  ['🪐 Wie viele Planeten hat unser Sonnensystem?', '8', '9', '7', 'Es gibt 8 Planeten.'],
+  ['🫁 Welches Organ brauchen wir zum Atmen?', 'Die Lunge', 'Der Magen', 'Die Leber', 'Wir atmen mit der Lunge.'],
+  ['🦴 Wie nennt man das Gerüst im Körper?', 'Skelett', 'Muskel', 'Haut', 'Die Knochen bilden das Skelett.'],
+  ['🌿 Was nehmen Pflanzen aus der Luft auf, um zu wachsen?', 'Kohlendioxid', 'Helium', 'Wasserstoff', 'Pflanzen nehmen Kohlendioxid auf und geben Sauerstoff ab.'],
+  ['🫧 Welches Gas atmen wir zum Leben ein?', 'Sauerstoff', 'Stickstoff', 'Helium', 'Wir brauchen Sauerstoff zum Atmen.'],
+  ['🧊 Wie nennt man Wasser als Gas?', 'Wasserdampf', 'Eis', 'Tau', 'Wasser wird zu Wasserdampf.'],
+  ['⚡ Was leitet Strom gut?', 'Kupfer', 'Gummi', 'Holz', 'Metalle wie Kupfer leiten Strom.'],
+  ['🦎 Welches Tier ist ein Reptil?', 'Die Eidechse', 'Der Frosch', 'Der Delfin', 'Eidechsen sind Reptilien.'],
+  ['🐸 Welches Tier ist ein Amphibium?', 'Der Frosch', 'Die Schlange', 'Die Schildkröte', 'Frösche leben an Land und im Wasser.'],
+  ['🦅 Welches Tier ist ein Vogel?', 'Der Adler', 'Die Fledermaus', 'Der Schmetterling', 'Der Adler hat Federn und ist ein Vogel.'],
+  ['🌋 Wie heißt es, wenn ein Berg Lava spuckt?', 'Vulkanausbruch', 'Erdbeben', 'Gewitter', 'Ein Vulkan spuckt Lava.'],
+  ['🌦️ Wie nennt man Wasser, das aus Wolken fällt?', 'Niederschlag', 'Nebel', 'Tau', 'Regen, Schnee und Hagel sind Niederschlag.'],
+  ['🏛️ In welchem Land stehen die Pyramiden von Gizeh?', 'Ägypten', 'Griechenland', 'Mexiko', 'Die Pyramiden von Gizeh stehen in Ägypten.'],
+  ['🗼 In welcher Stadt steht der Eiffelturm?', 'Paris', 'London', 'Berlin', 'Der Eiffelturm steht in Paris.'],
+  ['🇩🇪 Wie viele Bundesländer hat Deutschland?', '16', '12', '20', 'Deutschland hat 16 Bundesländer.'],
+  ['🧭 In welche Richtung zeigt die Kompassnadel?', 'Norden', 'Süden', 'Osten', 'Die Nadel zeigt nach Norden.'],
+  ['🕐 Wie viele Sekunden hat eine Minute?', '60', '100', '30', 'Eine Minute hat 60 Sekunden.'],
+  ['📅 Wie viele Tage hat ein normales Jahr?', '365', '360', '300', 'Ein normales Jahr hat 365 Tage.'],
+  ['⚖️ Wie viele Gramm sind ein Kilogramm?', '1000', '100', '10', 'Ein Kilogramm sind 1000 Gramm.'],
+  ['📏 Wie viele Zentimeter sind ein Meter?', '100', '10', '1000', 'Ein Meter sind 100 Zentimeter.'],
+  ['🔷 Wie viele Seiten hat ein Sechseck?', '6', '5', '8', 'Ein Sechseck hat 6 Seiten.'],
+  ['🌙 Wie nennt man das Licht, das wir vom Mond sehen?', 'Reflektiertes Sonnenlicht', 'Eigenes Licht', 'Mondfeuer', 'Der Mond leuchtet nicht selbst, er spiegelt Sonnenlicht.'],
+  ['🐝 Wie nennt man ein Bienenhaus?', 'Bienenstock', 'Nest', 'Höhle', 'Bienen wohnen im Bienenstock.'],
+  ['🎼 Wie viele Saiten hat eine normale Geige?', '4', '6', '8', 'Eine Geige hat 4 Saiten.'],
+  ['🎨 Welche Farben ergeben gemischt Lila?', 'Rot und Blau', 'Gelb und Grün', 'Rot und Gelb', 'Rot und Blau ergibt Lila.'],
+];
+
 export function makeGeneral(rng: Rng): Riddle {
-  const [q, r, a, b, h] = pick(rng, GENERAL);
+  const [q, r, a, b, h] = pick(rng, rng() < hardChance() ? GENERAL_HARD : GENERAL);
   return mc('general', rng, q, r, [a, b], h);
 }
 
@@ -274,16 +317,33 @@ export const BRAINTEASERS: [string, string, string, string, string][] = [
   ['Was ist schwerer: ein Kilo Federn oder ein Kilo Steine?', 'Gleich schwer', 'Steine', 'Federn', 'Ein Kilo ist immer ein Kilo!'],
 ];
 
+export const BRAINTEASERS_HARD: [string, string, string, string, string][] = [
+  ['Anna ist größer als Ben, Ben ist größer als Cem. Wer ist der Kleinste?', 'Cem', 'Anna', 'Ben', 'Anna > Ben > Cem, also ist Cem am kleinsten.'],
+  ['Ein Zug hat 3 Wagen. In jedem Wagen sitzen 4 Kinder. Wie viele Kinder sind im Zug?', '12', '7', '10', '3 × 4 = 12.'],
+  ['Welche zwei Münzen ergeben zusammen 15 Cent?', '10 Cent und 5 Cent', '2 mal 5 Cent', '10 Cent und 2 Cent', '10 + 5 = 15.'],
+  ['Was ist am Morgen vier-, am Mittag zwei- und am Abend dreibeinig?', 'Der Mensch', 'Ein Hund', 'Ein Stuhl', 'Baby krabbelt, Erwachsener geht, alter Mensch nutzt einen Stock.'],
+  ['Ein Kilo Federn und ein Kilo Steine zusammen wiegen …', '2 Kilo', '1 Kilo', '3 Kilo', '1 + 1 = 2 Kilo.'],
+  ['Wie viele Ecken hat ein Würfel?', '8', '6', '12', 'Ein Würfel hat 8 Ecken, 6 Flächen und 12 Kanten.'],
+  ['Mama ist 30 Jahre älter als ihr Kind. Das Kind ist 6. Wie alt ist Mama?', '36', '24', '30', '6 + 30 = 36.'],
+  ['Ich bin eine Zahl. Verdoppelst du mich und addierst 3, bekommst du 17. Wer bin ich?', '7', '8', '10', '7 × 2 + 3 = 17.'],
+  ['Wenn gestern Freitag war, welcher Tag ist übermorgen?', 'Montag', 'Sonntag', 'Samstag', 'Heute ist Samstag, morgen Sonntag, übermorgen Montag.'],
+  ['Ein Seil hat 2 Enden. Wie viele Enden hat es nach einem Schnitt in der Mitte?', '4', '2', '3', 'Aus einem Seil werden zwei, jedes hat 2 Enden.'],
+  ['Wie viele Monate haben mindestens 30 Tage?', '11', '6', '12', 'Alle außer dem Februar haben mindestens 30 Tage.'],
+  ['Ein Tisch hat 4 Beine. Wie viele Beine haben 3 Tische?', '12', '7', '9', '3 × 4 = 12.'],
+];
+
 /** Emoji-Muster, das weitergeführt werden soll. */
 const PATTERN_SETS = [['🔴', '🔵'], ['⭐', '🌙'], ['🍎', '🍌', '🍇'], ['🐶', '🐱'], ['🔺', '🟦', '⚪']];
 
 export function makePuzzle(rng: Rng): Riddle {
-  const t = Math.floor(rng() * 6);
+  // Stufe 1–2: Folgen, Muster, Rätsel. Höher kommen Verdoppeln, Zahlenrätsel und Emoji-Rechnung dazu.
+  const types = level <= 2 ? [0, 3, 5, 5] : level <= 4 ? [0, 1, 3, 4, 5, 2] : [1, 2, 4, 0, 5, 2, 4];
+  const t = types[Math.floor(rng() * types.length)];
   switch (t) {
     case 0: {
       // Zahlenfolge mit festem Schritt
-      const step = 2 + Math.floor(rng() * 8);
-      const start = 1 + Math.floor(rng() * 20);
+      const step = level <= 2 ? 1 + Math.floor(rng() * 4) : 2 + Math.floor(rng() * (level * 3));
+      const start = 1 + Math.floor(rng() * (level <= 2 ? 10 : 10 + level * 8));
       const seq = [0, 1, 2, 3].map((i) => start + i * step);
       const r = start + 4 * step;
       return mc('puzzle', rng, `Welche Zahl kommt als Nächstes? ${seq.join(', ')}, ?`, String(r), nearNumbers(rng, r, step), `Es geht immer um ${step} weiter: ${r}.`);
@@ -297,9 +357,9 @@ export function makePuzzle(rng: Rng): Riddle {
     }
     case 2: {
       // Denk dir eine Zahl
-      const n = 2 + Math.floor(rng() * 12);
+      const n = 2 + Math.floor(rng() * (level >= 5 ? 20 : 12));
       const add = 1 + Math.floor(rng() * 9);
-      const mult = 2 + Math.floor(rng() * 2);
+      const mult = 2 + Math.floor(rng() * (level >= 5 ? 4 : 2));
       const res = n * mult + add;
       return mc('puzzle', rng, `Ich denke mir eine Zahl. Mal ${mult}, plus ${add} ergibt ${res}. Welche Zahl ist es?`, String(n), nearNumbers(rng, n), `${n} × ${mult} + ${add} = ${res}.`);
     }
@@ -313,12 +373,12 @@ export function makePuzzle(rng: Rng): Riddle {
     }
     case 4: {
       // Emoji-Rechnung mit zwei Unbekannten
-      const a = 2 + Math.floor(rng() * 8), b = 1 + Math.floor(rng() * 8);
+      const a = 2 + Math.floor(rng() * (level >= 5 ? 14 : 8)), b = 1 + Math.floor(rng() * (level >= 5 ? 14 : 8));
       const [e1, e2] = pick(rng, [['🍎', '🍌'], ['🐱', '🐶'], ['⭐', '🌙'], ['🚗', '🚲']]);
       return mc('puzzle', rng, `${e1} + ${e1} = ${a * 2}   und   ${e1} + ${e2} = ${a + b}.   Wie viel ist ${e2}?`, String(b), nearNumbers(rng, b), `${e1} = ${a}, also ${e2} = ${a + b} − ${a} = ${b}.`);
     }
     default: {
-      const [q, r, a, b, h] = pick(rng, BRAINTEASERS);
+      const [q, r, a, b, h] = pick(rng, level >= 4 && rng() < 0.6 ? BRAINTEASERS_HARD : BRAINTEASERS);
       return mc('puzzle', rng, q, r, [a, b], h);
     }
   }

@@ -1,6 +1,6 @@
 import { sfx } from './sfx';
 import { pick } from '../core/generator';
-import { ENGLISH_KINDS, RIDDLE_KINDS, makeRiddle, storyFor, type Riddle } from '../core/riddles';
+import { areaLevel, ENGLISH_KINDS, RIDDLE_KINDS, makeRiddle, storyFor, type Riddle } from '../core/riddles';
 import { MAX_STARS, type Profile } from '../core/types';
 import { earn } from '../core/money';
 import { de } from '../i18n/de';
@@ -21,6 +21,7 @@ const STORY_REWARD = 8;
 /** Gespräch mit einem Korok: Geschichte in Kapiteln mit Rätseln, danach kleine Zusatzrätsel. */
 export function openTalk(spec: TalkSpec): void {
   const p = spec.profile;
+  const lvl = Math.round(['english', 'german', 'general', 'puzzle'].reduce((a, id) => a + areaLevel(p, id), 0) / 4);
   const story = storyFor(spec.kid);
   const total = story.chapters.length;
   const rng = Math.random;
@@ -74,7 +75,7 @@ export function openTalk(spec: TalkSpec): void {
 
   const chapter = (i: number): void => {
     if (i >= total) return finish();
-    ask(story.chapters[i].text, makeRiddle(story.chapters[i].kind, rng), (first) => {
+    ask(story.chapters[i].text, makeRiddle(story.chapters[i].kind, rng, lvl), (first) => {
       p.talked[spec.kid] = i + 1;
       gain(first ? 1 : 0, false);
       chapter(i + 1);
@@ -91,7 +92,7 @@ export function openTalk(spec: TalkSpec): void {
   };
 
   const quick = (): void => {
-    ask(null, makeRiddle(pick(rng, rng() < 0.65 ? ENGLISH_KINDS : RIDDLE_KINDS), rng), (first) => {
+    ask(null, makeRiddle(pick(rng, rng() < 0.65 ? ENGLISH_KINDS : RIDDLE_KINDS), rng, lvl), (first) => {
       p.talked.quick = (p.talked.quick ?? 0) + 1;
       const star = first && p.talked.quick % 3 === 0;
       gain(first ? 1 : 0, star);

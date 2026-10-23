@@ -35,3 +35,23 @@ describe('Rätselinhalte', () => {
     }
   });
 });
+
+import { GENERAL_HARD, BRAINTEASERS_HARD } from './lessons';
+import { FACTS_HARD } from './riddles';
+
+describe('Stufen bei Rätseln', () => {
+  it('alle Stufen liefern gültige Aufgaben mit eindeutigen Optionen', () => {
+    for (let level = 1; level <= 6; level++)
+      for (const kind of ['general', 'fact', 'puzzle', 'german'] as const)
+        for (let i = 0; i < 150; i++) {
+          const r = makeRiddle(kind, Math.random, level);
+          expect(new Set(r.options).size).toBe(r.options.length);
+          expect(r.options.length).toBeGreaterThanOrEqual(3);
+          expect(r.options[r.answer]).toBeTruthy();
+        }
+  });
+  it('schwere Pools haben eindeutige Antworten', () => {
+    for (const [, r, a, b] of [...GENERAL_HARD, ...BRAINTEASERS_HARD, ...FACTS_HARD.map((f) => ['', ...f] as string[])])
+      expect(new Set([r, a, b]).size).toBe(3);
+  });
+});
