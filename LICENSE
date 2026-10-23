@@ -1,0 +1,13 @@
+Copyright (c) 2026 Hennen Studio. Alle Rechte vorbehalten.
+All rights reserved.
+
+Dieses Projekt ("Lernplanet Koro") ist öffentlich einsehbar, aber nicht quelloffen
+lizenziert. Ohne vorherige schriftliche Erlaubnis von Hennen Studio ist es nicht
+gestattet, den Quelltext, die Grafiken, die Musik, die Sprachbausteine oder andere
+Bestandteile zu kopieren, zu verändern, weiterzuverbreiten oder kommerziell zu nutzen.
+
+Das Spielen der veröffentlichten Version zum privaten Gebrauch ist erlaubt.
+
+Enthaltene Drittkomponenten behalten ihre eigenen Lizenzen:
+- Three.js (MIT License)
+- Piper TTS (MIT License) und die Stimme de_DE-thorsten-medium (rhasspy/piper-voices)

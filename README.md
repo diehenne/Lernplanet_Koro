@@ -72,3 +72,8 @@ Gesprochene Texte dürfen keine dynamischen Namen enthalten; der Test prüft die
 - „Welcome!“ wird mit englischer Stimme gesprochen; Heldenfigur mit weicheren Formen.
 
 - Marktplatz: Hund Bello mit Rechen-Rennen (20 s, gemischte Aufgaben bis 20, gemeinsame Bestenliste auf dem Gerät).
+
+## Urheberrecht und Lizenzen
+© 2026 Hennen Studio. Alle Rechte vorbehalten, siehe [LICENSE](./LICENSE). Der Quelltext ist einsehbar, darf aber ohne Erlaubnis nicht kopiert, verändert oder weiterverbreitet werden.
+
+Verwendete Open-Source-Bausteine: [Three.js](https://threejs.org) (MIT), Sprachsynthese [Piper](https://github.com/rhasspy/piper) (MIT) mit der Stimme „Thorsten" (de_DE-thorsten-medium, rhasspy/piper-voices). Lizenzen der Stimme bitte auf der Modellseite prüfen.

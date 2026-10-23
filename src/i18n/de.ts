@@ -3,6 +3,7 @@ import { storyTexts } from '../core/riddles';
 import { OP_SYMBOL } from '../core/types';
 
 export const de = {
+  copyright: '© 2026 Hennen Studio. Alle Rechte vorbehalten.',
   title: 'Lernplanet Koro',
   subtitle: 'Entdecke, rate, rechne – und werde schlau!',
   whoPlays: 'Wer spielt heute?',

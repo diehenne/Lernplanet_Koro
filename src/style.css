@@ -218,3 +218,5 @@ button.danger { background: #e0483e; box-shadow: 0 5px 0 #a02820; color: #fff; }
   box-shadow: 0 -10px 12px -6px var(--cream);
 }
 .panel > #close, .panel > #abort, .panel > #ok, .panel > #resume, .panel > #back { display: block; margin-left: auto; margin-right: auto; }
+
+.copy { margin: 10px 0 0; font-size: 13px; opacity: .6; text-align: center; }
