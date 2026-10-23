@@ -70,7 +70,7 @@ function showStart(): void {
   screen.innerHTML = `<div class="panel center"><h1>🌳 ${de.title}</h1><p>${de.subtitle}</p>
     <h2>${de.whoPlays}</h2><div class="saves">${cards}</div><button class="alt" id="new">➕ ${de.newPlayer}</button>
     <p class="files"><button class="alt" id="export">💾 ${de.save.export}</button> <button class="alt" id="import">📂 ${de.save.import}</button>
-    <input type="file" id="file" accept="application/json,.json" hidden /></p><p class="hint">${de.save.auto}</p><p class="copy">${de.copyright}</p></div>`;
+    <input type="file" id="file" accept="application/json,.json" hidden /></p><p class="hint">${de.save.auto}</p><p class="copy">${de.copyright} · v${__VERSION__}</p></div>`;
   screen.querySelectorAll<HTMLElement>('button.avatar').forEach((b) =>
     b.addEventListener('click', () => selectProfile(profiles[Number(b.dataset.i)])),
   );

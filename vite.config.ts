@@ -1,9 +1,20 @@
 import { defineConfig, type Plugin } from 'vite';
+import { execSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
 const SINGLE = !!process.env.SINGLE_FILE;
+
+/** Version: Hauptnummer aus package.json + Anzahl der Commits als Build-Nummer. */
+function appVersion(): string {
+  const base = JSON.parse(readFileSync('package.json', 'utf8')).version as string;
+  try {
+    return `${base}.${execSync('git rev-list --count HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()}`;
+  } catch {
+    return base;
+  }
+}
 
 /** Sprachbausteine als Base64 direkt in die Ein-Datei-Version einbetten. */
 function audioPack(): Plugin {
@@ -50,7 +61,7 @@ function classicScript(): Plugin {
 // Ein-Datei-Version für Tablets ohne Server: npm run build:single
 export default defineConfig({
   base: './',
-  define: { __SINGLE__: JSON.stringify(SINGLE) },
+  define: { __SINGLE__: JSON.stringify(SINGLE), __VERSION__: JSON.stringify(appVersion()) },
   publicDir: SINGLE ? false : 'public',
   build: SINGLE
     ? {
