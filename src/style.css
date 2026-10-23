@@ -30,7 +30,7 @@ button:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--leaf-dark)
 button.alt { background: var(--sun); color: var(--ink); box-shadow: 0 5px 0 #c9982b; }
 button.wrong { background: #c9c9c9; box-shadow: 0 5px 0 #999; opacity: .6; }
 button.right { background: var(--leaf); animation: pop .4s; }
-button.avatar { font-size: 56px; background: #fff; box-shadow: 0 5px 0 #cdbf95; width: 96px; height: 96px; }
+button.avatar { color: var(--ink); font-size: 56px; background: #fff; box-shadow: 0 5px 0 #cdbf95; min-width: 96px; min-height: 96px; padding: 8px 14px; }
 button.avatar.sel { outline: 6px solid var(--sun); }
 input { font: inherit; font-size: 30px; padding: 10px 16px; border-radius: 16px; border: 3px solid var(--leaf-dark); width: 80%; text-align: center; }
 

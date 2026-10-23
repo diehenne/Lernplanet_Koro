@@ -46,7 +46,7 @@ export class PostFX {
     this.ao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1.4, thickness: 1.5, scale: 1.1, samples: 12 });
     this.ao.blendIntensity = 0.85;
     this.composer.addPass(this.ao);
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.6, 0.85);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.22, 0.5, 0.92);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new ShaderPass(GradeShader));
     this.composer.addPass(new OutputPass());

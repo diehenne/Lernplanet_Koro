@@ -223,11 +223,11 @@ export class World {
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environmentIntensity = 0.35;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.0;
     this.scene.fog = new THREE.Fog(0xbfe8ff, 28, 62);
     this.scene.background = this.skyColor;
 
-    this.sun = new THREE.DirectionalLight(0xfff0d0, 2.8);
+    this.sun = new THREE.DirectionalLight(0xfff0d0, 2.2);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(4096, 4096);
     this.sun.shadow.bias = -0.0004;
