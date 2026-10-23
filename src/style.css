@@ -224,6 +224,10 @@ button.danger { background: #e0483e; box-shadow: 0 5px 0 #a02820; color: #fff; }
 .panel[data-fit] > div:has(> #abort, > #close, > #ok, > #resume, > #back, > #go), .panel[data-fit] > p:has(> #ok, > #close) {
   position: static; box-shadow: none; padding: 0; background: none;
 }
+.panel > button#close, .panel > button#abort, .panel > button#ok, .panel > button#resume, .panel > button#back {
+  background: var(--leaf); color: #fff; box-shadow: 0 5px 0 var(--leaf-dark); padding: 8px 22px; margin-top: 8px;
+}
+.panel > button#close.alt, .panel > button#abort.alt, .panel > button#ok.alt { background: var(--sun); color: var(--ink); box-shadow: 0 5px 0 #c9982b; }
 #overlay:has(.panel.center) ~ #minimap { display: none !important; }
 
 .copy { margin: 10px 0 0; font-size: 13px; opacity: .6; text-align: center; }
