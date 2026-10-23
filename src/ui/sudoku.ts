@@ -20,7 +20,7 @@ export function runSudoku(spec: SudokuUiSpec): void {
   const n = sp.n;
   const grid = [...puzzle];
   const given = puzzle.map((v) => v !== 0);
-  let sel = grid.findIndex((v) => v === 0);
+  let sel = -1;
   let mistakes = 0;
   let done = false;
 
@@ -89,8 +89,9 @@ export function runSudoku(spec: SudokuUiSpec): void {
   const place = (v: number): void => {
     if (done || sel < 0) return;
     if (given[sel]) { sfx('nope'); refresh(de.sudoku.given); return; }
-    grid[sel] = v;
-    if (v && v !== solution[sel]) {
+    const idx = sel;
+    grid[idx] = v;
+    if (v && v !== solution[idx]) {
       mistakes++;
       sfx('nope');
     } else if (v) sfx('place');
@@ -101,7 +102,9 @@ export function runSudoku(spec: SudokuUiSpec): void {
       setTimeout(() => finish(false), 1400);
       return;
     }
-    refresh(v && v !== solution[sel] ? de.sudoku.wrong : '');
+    sel = -1;
+    refresh(v && v !== solution[idx] ? de.sudoku.wrong : '');
+    padFocus(cellEls()[idx]);
   };
 
   const onKey = (e: KeyboardEvent): void => {
@@ -114,7 +117,7 @@ export function runSudoku(spec: SudokuUiSpec): void {
   const cells = grid.map((v, i) => `<button class="${cls(i, bad0)}" data-i="${i}">${v || '&nbsp;'}</button>`).join('');
   spec.root.innerHTML = `<div class="panel center"><h2>🔢 ${de.sudoku.title} <small>${n}×${n}</small></h2>
     <p class="hint" id="shint">${de.sudoku.help}</p>
-    <div class="sudoku-wrap"><div class="sudoku" style="grid-template-columns:repeat(${n},1fr)">${cells}</div><div id="numring" class="numring"></div></div>
+    <div class="sudoku-wrap"><div class="sudoku" style="--n:${n};grid-template-columns:repeat(${n},1fr)">${cells}</div><div id="numring" class="numring"></div></div>
     <div><button class="alt" id="abort">✖ ${de.abort}</button></div></div>`;
   cellEls().forEach((b) =>
     b.addEventListener('click', () => {
