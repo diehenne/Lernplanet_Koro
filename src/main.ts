@@ -303,14 +303,14 @@ const GFX: Record<string, string> = { low: '🔋', med: '🌤️', high: '✨' }
 
 function hud(): void {
   const p = current!;
-  screen.innerHTML = `<div class="hud"><span><span class="chip">${p.avatar} ${p.name}</span>
+  screen.innerHTML = `<div class="hud"><span><button class="chip" id="who" title="${de.whoPlays}">${p.avatar} ${p.name}</button>
     <span class="chip" id="region"></span></span>
     <span><span class="chip" id="rupees">${GEM} ${balance(p)}</span><span class="chip" id="stars">⭐ ${p.stars}/${MAX_STARS}</span>
     <span class="chip" id="tool" title="${de.inv.inHand}"></span>
     <button class="alt" id="bag" title="${de.inv.title}">🎒<span class="g tri">△</span></button>
     <button class="alt" id="music" title="${de.mute}">${speechOn() || musicOn() ? '🎵' : '🔕'}<span class="g">Create</span></button>
     <button class="alt" id="gfx" title="Grafik">${GFX[world.quality] ?? '✨'}</button>
-    <button class="alt" id="map" title="${de.map.title}">🗺️<span class="g">Options</span></button></span></div>
+</span></div>
     <div id="actions"><button class="alt hidden" id="a-pick" title="${de.actions.pickup}">✋</button>
     <button id="a-act" class="hidden"></button>
     <button class="alt" id="a-run" title="${de.actions.run}">🏃<span class="g">R1</span></button>
@@ -328,7 +328,8 @@ function hud(): void {
     world.setQuality(next);
     (e.currentTarget as HTMLElement).textContent = GFX[next];
   });
-  document.getElementById('map')!.addEventListener('click', () => command('map'));
+  document.getElementById('who')!.addEventListener('click', () => { save(); showStart(); });
+  document.getElementById('minimap')!.addEventListener('click', () => command('map'));
   document.getElementById('bag')!.addEventListener('click', () => command('inventory'));
   const press = (id: string, c: Cmd): void => {
     const el = document.getElementById(id)!;
