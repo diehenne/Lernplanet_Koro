@@ -302,7 +302,7 @@ button.chip, button#region { font-family: inherit; min-width: 0; min-height: 0; 
 }
 
 @media (max-height: 520px), (max-width: 600px) {
-  .sudoku { --cs: min(40px, calc((100vw - 60px) / var(--n)), calc((100vh - 130px) / var(--n))); margin: 4px 0; }
+  .sudoku { --cs: min(40px, calc((100vw - 60px) / var(--n)), calc((100vh - 150px) / var(--n))); margin: 4px 0; }
   .sc { font-size: 20px; }
   .sudoku-wrap { padding: 10px 14px; }
 }

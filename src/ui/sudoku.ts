@@ -70,16 +70,17 @@ export function runSudoku(spec: SudokuUiSpec): void {
     const r = cell.getBoundingClientRect();
     ring.style.display = 'block';
     const k = wrapEl.offsetWidth ? wrap.width / wrapEl.offsetWidth : 1;
-    const reach = 90 * k;
+    const reach = (n > 6 ? 105 : 90) * k;
     const clamp = (v: number, max: number): number => (max < 2 * reach ? max / 2 : Math.min(Math.max(v, reach), max - reach));
     const cx = clamp(r.left + r.width / 2, innerWidth);
     const cy = clamp(r.top + r.height / 2, innerHeight);
     ring.style.left = `${(cx - wrap.left) / k}px`;
     ring.style.top = `${(cy - wrap.top) / k}px`;
+    const rad = n > 6 ? 82 : 66;
     const items = [...Array.from({ length: n }, (_, k) => String(k + 1)), '⌫'];
     ring.innerHTML = items.map((t, k) => {
       const a = (k / items.length) * Math.PI * 2 - Math.PI / 2;
-      return `<button class="rb ${t === '⌫' ? 'alt' : ''}" data-n="${t === '⌫' ? 0 : t}" style="left:${Math.cos(a) * 66}px;top:${Math.sin(a) * 66}px">${t}</button>`;
+      return `<button class="rb ${t === '⌫' ? 'alt' : ''}" data-n="${t === '⌫' ? 0 : t}" style="left:${Math.cos(a) * rad}px;top:${Math.sin(a) * rad}px">${t}</button>`;
     }).join('');
     ring.querySelectorAll<HTMLElement>('button').forEach((b) => b.addEventListener('click', () => place(Number(b.dataset.n))));
   };

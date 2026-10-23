@@ -23,7 +23,8 @@ describe('Sudoku', () => {
   });
   it('Stufe steigert die Größe', () => {
     expect(sudokuForLevel(1, rng).spec.n).toBe(4);
-    expect(sudokuForLevel(6, rng).spec.n).toBe(6);
+    expect(sudokuForLevel(5, rng).spec.n).toBe(6);
+    expect(sudokuForLevel(6, rng).spec.n).toBe(9);
   });
   it('erkennt Konflikte', () => {
     const g = [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

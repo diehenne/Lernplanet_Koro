@@ -8,6 +8,7 @@ export interface SudokuSpec {
 }
 export const SUDOKU_4: SudokuSpec = { n: 4, bh: 2, bw: 2 };
 export const SUDOKU_6: SudokuSpec = { n: 6, bh: 2, bw: 3 };
+export const SUDOKU_9: SudokuSpec = { n: 9, bh: 3, bw: 3 };
 
 export interface SudokuPuzzle {
   spec: SudokuSpec;
@@ -90,7 +91,8 @@ export function makeSudoku(spec: SudokuSpec, clues: number, rng: Rng): SudokuPuz
 export function sudokuForLevel(level: number, rng: Rng): SudokuPuzzle {
   const L = Math.min(6, Math.max(1, level));
   if (L <= 3) return makeSudoku(SUDOKU_4, [11, 9, 7][L - 1], rng);
-  return makeSudoku(SUDOKU_6, [22, 18, 14][L - 4], rng);
+  if (L <= 5) return makeSudoku(SUDOKU_6, [22, 16][L - 4], rng);
+  return makeSudoku(SUDOKU_9, 40, rng);
 }
 
 /** Zellen, die gegen Zeile, Spalte oder Block verstoßen. */
