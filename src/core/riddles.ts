@@ -1,5 +1,5 @@
 import { pick, type Rng } from './generator';
-import { setLessonLevel, makeGeneral, makeGerman, makePuzzle } from './lessons';
+import { hardChance, setLessonLevel, makeGeneral, makeGerman, makePuzzle } from './lessons';
 
 /** Rätsel für die 2.–4. Klasse: Rechtschreibung, Englisch, Wortschatz und Sachkunde. */
 export type RiddleKind = 'spell' | 'gap' | 'vocab' | 'odd' | 'opposite' | 'fact' | 'order' | 'espell' | 'esent' | 'eodd' | 'german' | 'general' | 'puzzle';
@@ -54,6 +54,58 @@ export const VOCAB: [string, string, string][] = [
   ['hot', 'heiß', '🔥'], ['cold', 'kalt', '🧊'], ['happy', 'glücklich', '😀'], ['sad', 'traurig', '😢'], ['hand', 'Hand', '✋'],
   ['eye', 'Auge', '👁️'], ['nose', 'Nase', '👃'], ['rain', 'Regen', '🌧️'], ['snow', 'Schnee', '❄️'], ['flower', 'Blume', '🌸'],
   ['door', 'Tür', '🚪'], ['bed', 'Bett', '🛏️'], ['cake', 'Kuchen', '🍰'], ['egg', 'Ei', '🥚'], ['cheese', 'Käse', '🧀'],
+];
+
+export const SPELL_HARD: [string, string, string, string][] = [
+  ['🥐', 'Brötchen', 'Brotchen', 'Brötschen'], ['🍓', 'Erdbeere', 'Erdbehre', 'Ärdbeere'], ['🚁', 'Hubschrauber', 'Hubschrauper', 'Hupschrauber'],
+  ['🧸', 'Teddybär', 'Tedibär', 'Teddybähr'], ['🐿️', 'Eichhörnchen', 'Eichhörnschen', 'Eichhornchen'], ['🌈', 'Regenbogen', 'Regenbogn', 'Rägenbogen'],
+  ['🏊', 'Schwimmbad', 'Schwimbad', 'Schwimmbat'], ['🎄', 'Weihnachten', 'Weinachten', 'Weihnahten'], ['🚒', 'Feuerwehr', 'Feuerwer', 'Föierwehr'],
+  ['📚', 'Bibliothek', 'Bibliotek', 'Biblioteck'], ['🎂', 'Geburtstag', 'Geburtstak', 'Gebursttag'],
+];
+
+export const GAP_HARD: [string, string, string, string][] = [
+  ['Verk_fer', 'äu', 'eu', 'au'], ['Ho_nung', 'ff', 'f', 'pf'], ['Ge_chenk', 'sch', 'ch', 's'], ['Pa_ier', 'p', 'b', 'pp'],
+  ['Tr_me', 'äu', 'eu', 'au'], ['Zi_er', 'mm', 'm', 'mn'], ['Gesch_chte', 'i', 'ie', 'ü'], ['Fl_ge', 'ü', 'u', 'ue'],
+];
+
+export const VOCAB_HARD: [string, string, string][] = [
+  ['banana', 'Banane', '🍌'], ['orange', 'Orange', '🍊'], ['window', 'Fenster', '🪟'], ['chair', 'Stuhl', '🪑'],
+  ['garden', 'Garten', '🌷'], ['teacher', 'Lehrer', '🧑‍🏫'], ['rabbit', 'Hase', '🐰'], ['elephant', 'Elefant', '🐘'],
+  ['butterfly', 'Schmetterling', '🦋'], ['umbrella', 'Regenschirm', '☂️'], ['rainbow', 'Regenbogen', '🌈'],
+  ['breakfast', 'Frühstück', '🥐'], ['kitchen', 'Küche', '🍳'], ['bridge', 'Brücke', '🌉'], ['mountain', 'Berg', '⛰️'],
+  ['river', 'Fluss', '🏞️'], ['yesterday', 'gestern', '⏪'], ['tomorrow', 'morgen', '⏩'], ['beautiful', 'schön', '😍'],
+  ['ice cream', 'Eis', '🍦'], ['clock', 'Uhr', '🕐'], ['bottle', 'Flasche', '🍼'], ['pencil', 'Bleistift', '✏️'],
+];
+
+export const SENT_HARD: [string, string, string, string][] = [
+  ['She ___ to school every day.', 'goes', 'go', 'going'], ['He ___ playing football now.', 'is', 'are', 'am'],
+  ['There ___ three cats in the garden.', 'are', 'is', 'am'], ['My brother ___ a bike.', 'has', 'have', 'are'],
+  ['We ___ going to the park.', 'are', 'is', 'am'], ['I ___ not like fish.', 'do', 'does', 'am'],
+  ['She ___ not like milk.', 'does', 'do', 'is'], ['The cat is ___ the table. (unter)', 'under', 'on', 'in'],
+  ['Yesterday I ___ to the zoo.', 'went', 'go', 'goed'], ['He ___ a cake last week.', 'made', 'make', 'maked'],
+  ['Where ___ you from?', 'are', 'is', 'am'], ['I have two ___ . (Kinder)', 'children', 'childs', 'childen'],
+  ['She is ___ than me. (größer)', 'taller', 'tall', 'tallest'], ['My birthday is ___ May.', 'in', 'on', 'at'],
+  ["I get up ___ seven o'clock.", 'at', 'in', 'on'],
+];
+
+export const EODD_HARD: [string, string[]][] = [
+  ['vehicles', ['car', 'bus', 'train', 'plane', 'bike', 'ship']], ['clothes', ['shirt', 'shoe', 'hat', 'coat', 'sock', 'dress']],
+  ['fruit', ['apple', 'banana', 'orange', 'grape', 'lemon', 'pear']], ['rooms', ['kitchen', 'bedroom', 'bathroom', 'living room']],
+  ['months', ['January', 'March', 'May', 'June', 'July']], ['sports', ['football', 'tennis', 'swimming', 'skiing']],
+  ['jobs', ['doctor', 'teacher', 'baker', 'pilot', 'farmer']],
+];
+
+export const ODD_HARD: [string, string[]][] = [
+  ['Werkzeuge', ['Hammer', 'Säge', 'Zange', 'Bohrer']], ['Vögel', ['Spatz', 'Amsel', 'Meise', 'Storch']],
+  ['Planeten', ['Mars', 'Venus', 'Jupiter', 'Saturn']], ['Sportarten', ['Fußball', 'Tennis', 'Schwimmen', 'Turnen']],
+  ['Länder', ['Spanien', 'Italien', 'Polen', 'Dänemark']], ['Gewässer', ['See', 'Fluss', 'Meer', 'Teich']],
+  ['Getränke', ['Saft', 'Tee', 'Limonade', 'Kakao']],
+];
+
+export const OPPOSITE_HARD: [string, string][] = [
+  ['mutig', 'ängstlich'], ['fleißig', 'faul'], ['reich', 'arm'], ['gesund', 'krank'], ['billig', 'teuer'],
+  ['sauber', 'schmutzig'], ['gewinnen', 'verlieren'], ['Anfang', 'Ende'], ['erlauben', 'verbieten'], ['Freund', 'Feind'],
+  ['sicher', 'gefährlich'],
 ];
 
 export const SENT: [string, string, string, string][] = [
@@ -198,40 +250,52 @@ const ODD_CLASH = new Set(['Obst|Gemüse', 'Gemüse|Obst']);
 
 let level = 3;
 
+const hardNow = (rng: Rng): boolean => rng() < hardChance();
+function pickHard<T>(rng: Rng, easy: T[], hard: T[]): T {
+  return pick(rng, hardNow(rng) ? hard : easy);
+}
+/** Englische Wörter: leichte Liste, bei höheren Stufen zunehmend mit schwereren gemischt. */
+function vocabPool(rng: Rng): [string, string, string][] {
+  return hardNow(rng) ? VOCAB_HARD.concat(VOCAB.slice(-20)) : VOCAB;
+}
+
 function makeRiddleRaw(kind: RiddleKind, rng: Rng): Riddle {
   switch (kind) {
     case 'spell': {
-      const [emoji, w, a, b] = pick(rng, SPELL);
+      const [emoji, w, a, b] = pickHard(rng, SPELL, SPELL_HARD);
       return build(kind, rng, `${emoji} Wie schreibt man das richtig?`, w, [a, b], `So schreibt man es: ${w}.`);
     }
     case 'gap': {
-      const [word, right, a, b] = pick(rng, GAP);
+      const [word, right, a, b] = pickHard(rng, GAP, GAP_HARD);
       return build(kind, rng, `Was fehlt? ${word}`, right, [a, b], `Sprich das Wort langsam: ${word.replace('_', right)}.`);
     }
     case 'vocab': {
-      const [en, de, emoji] = pick(rng, VOCAB);
+      const vpool = vocabPool(rng);
+      const [en, de, emoji] = pick(rng, vpool);
       if (rng() < 0.5) {
-              const r = build(kind, rng, `${emoji} Was heißt „${en}“ auf Deutsch?`, de, others(rng, VOCAB.map((v) => v[1]), de), `Richtig ist: ${de}.`);
+              const r = build(kind, rng, `${emoji} Was heißt „${en}“ auf Deutsch?`, de, others(rng, vpool.map((v) => v[1]), de), `Richtig ist: ${de}.`);
         r.en = en;
         return r;
       }
-      return build(kind, rng, `${emoji} Wie sagt man „${de}“ auf Englisch?`, en, others(rng, VOCAB.map((v) => v[0]), en), `Auf Englisch: ${en}.`);
+      return build(kind, rng, `${emoji} Wie sagt man „${de}“ auf Englisch?`, en, others(rng, vpool.map((v) => v[0]), en), `Auf Englisch: ${en}.`);
     }
     case 'odd': {
-      const [name, items] = pick(rng, ODD);
-      const other = pick(rng, ODD.filter((g) => g[0] !== name && !ODD_CLASH.has(`${name}|${g[0]}`)));
+      const opool = hardNow(rng) ? ODD_HARD : ODD;
+      const [name, items] = pick(rng, opool);
+      const other = pick(rng, opool.filter((g) => g[0] !== name && !ODD_CLASH.has(`${name}|${g[0]}`)));
       const oddOne = pick(rng, other[1]);
       const two = shuffle(rng, items).slice(0, 2);
       return build(kind, rng, 'Was passt nicht dazu?', oddOne, two, `Die anderen gehören alle zu: ${name}.`);
     }
     case 'opposite': {
-      const [a, b] = pick(rng, OPPOSITE);
+      const opp = hardNow(rng) ? OPPOSITE_HARD : OPPOSITE;
+      const [a, b] = pick(rng, opp);
       const flip = rng() < 0.5;
       const [word, right] = flip ? [b, a] : [a, b];
-      return build(kind, rng, `Was ist das Gegenteil von „${word}“?`, right, others(rng, OPPOSITE.flat().filter((x) => !CONFLICT_GROUPS.some((g) => g.includes(x) && (g.includes(word) || g.includes(right)))), right, word), `Das Gegenteil von ${word} ist ${right}.`);
+      return build(kind, rng, `Was ist das Gegenteil von „${word}“?`, right, others(rng, opp.flat().filter((x) => !CONFLICT_GROUPS.some((g) => g.includes(x) && (g.includes(word) || g.includes(right)))), right, word), `Das Gegenteil von ${word} ist ${right}.`);
     }
     case 'espell': {
-      const [en, , emoji] = pick(rng, VOCAB.filter((v) => !v[0].includes(' ')));
+      const [en, , emoji] = pick(rng, vocabPool(rng).filter((v) => !v[0].includes(' ')));
       const wrong = shuffle(rng, WRONG_SPELL(en)).slice(0, 2);
       if (wrong.length < 2) return makeRiddleRaw('vocab', rng);
       const r = build(kind, rng, `${emoji} How do you spell it?`, en, wrong, `Richtig geschrieben: ${en}.`);
@@ -239,14 +303,15 @@ function makeRiddleRaw(kind: RiddleKind, rng: Rng): Riddle {
       return r;
     }
     case 'esent': {
-      const [q, r, a, b] = pick(rng, SENT);
+      const [q, r, a, b] = pickHard(rng, SENT, SENT_HARD);
       const res = build(kind, rng, q, r, [a, b], `Der Satz heißt: ${q.replace('___', r)}`);
       res.en = q.replace('___', r).replace(/\(.*\)/, '');
       return res;
     }
     case 'eodd': {
-      const [name, items] = pick(rng, EODD);
-      const other = pick(rng, EODD.filter((g) => g[0] !== name));
+      const epool = hardNow(rng) ? EODD_HARD : EODD;
+      const [name, items] = pick(rng, epool);
+      const other = pick(rng, epool.filter((g) => g[0] !== name));
       const oddOne = pick(rng, other[1]);
       const two = shuffle(rng, items).slice(0, 2);
       return build(kind, rng, 'Which word does not belong?', oddOne, two, `The others are all: ${name}.`);

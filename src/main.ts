@@ -372,9 +372,12 @@ function applyContext(c: { action: ActionKind; pickup: boolean }): void {
   }
 }
 
-function say(text: string, ms = 8000): void {
+function say(text: string, ms = 8000, full = false): void {
   if (modalOpen()) return;
-  overlay.innerHTML = `<div class="panel speech"><span class="face">🌱</span><p>${text}</p></div>`;
+  // Eingeblendet wird nur der erste Satz, gesprochen wird alles
+  const sentences = text.replace(/^Welcome! /, '').match(/[^.!?]+[.!?]/g);
+  const shown = full ? text : (sentences?.[0] ?? text);
+  overlay.innerHTML = `<div class="panel speech"><span class="face">🌱</span><p>${shown}</p></div>`;
   // Englische Begrüßung mit englischer Stimme, der deutsche Rest mit der deutschen
   const m = /^Welcome! /.exec(text);
   if (m) {
@@ -383,7 +386,7 @@ function say(text: string, ms = 8000): void {
   } else void speak(text);
   setTimeout(() => {
     if (overlay.querySelector('.speech')) overlay.innerHTML = '';
-  }, ms);
+  }, full ? ms : Math.min(ms, 3200));
 }
 
 function enterWorld(where: string): void {
@@ -716,7 +719,7 @@ setInterval(() => {
       current.stars = 3;
       idle = 0;
       world.teleportTo('hub');
-      say(de.faint, 9000);
+      say(de.faint, 9000, true);
     }
     save();
     updateHud();

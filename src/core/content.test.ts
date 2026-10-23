@@ -42,7 +42,7 @@ import { FACTS_HARD } from './riddles';
 describe('Stufen bei Rätseln', () => {
   it('alle Stufen liefern gültige Aufgaben mit eindeutigen Optionen', () => {
     for (let level = 1; level <= 6; level++)
-      for (const kind of ['general', 'fact', 'puzzle', 'german'] as const)
+      for (const kind of ['general', 'fact', 'puzzle', 'german', 'spell', 'gap', 'vocab', 'espell', 'esent', 'eodd', 'odd', 'opposite'] as const)
         for (let i = 0; i < 150; i++) {
           const r = makeRiddle(kind, Math.random, level);
           expect(new Set(r.options).size).toBe(r.options.length);

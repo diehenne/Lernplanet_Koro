@@ -18,7 +18,7 @@ export function setLessonLevel(l: number): void {
   level = Math.min(6, Math.max(1, l));
 }
 /** Wahrscheinlichkeit für eine schwere Frage: Stufe 1–2 nie, danach steigend. */
-const hardChance = (): number => (level <= 2 ? 0 : (level - 2) * 0.22);
+export const hardChance = (): number => (level <= 2 ? 0 : (level - 2) * 0.22);
 
 function mc(kind: RiddleKind, rng: Rng, prompt: string, right: string, wrong: string[], hint: string): Riddle {
   const options = shuffle(rng, [right, ...wrong.filter((w) => w !== right)]);
@@ -38,6 +38,44 @@ function nearNumbers(rng: Rng, right: number, step = 1): string[] {
 }
 
 // ------------------------------------------------------------------ Deutsch
+
+/** Aus der leichten oder (je nach Stufe) der schweren Liste wählen. */
+function byLevel<T>(rng: Rng, easy: T[], hard: T[]): T {
+  return pick(rng, rng() < hardChance() ? hard : easy);
+}
+
+export const ARTICLES_HARD: [string, 'der' | 'die' | 'das'][] = [
+  ['Sofa', 'das'], ['Gurke', 'die'], ['Computer', 'der'], ['Messer', 'das'], ['Käse', 'der'], ['Schere', 'die'],
+  ['Brötchen', 'das'], ['Kissen', 'das'], ['Rucksack', 'der'], ['Zeitung', 'die'], ['Kuchen', 'der'], ['Telefon', 'das'],
+  ['Fernseher', 'der'], ['Gabel', 'die'],
+];
+
+export const PLURALS_HARD: [string, string, string, string][] = [
+  ['Zahn', 'Zähne', 'Zahns', 'Zahnen'], ['Fuß', 'Füße', 'Fuße', 'Fußen'], ['Mann', 'Männer', 'Manner', 'Manns'],
+  ['Wald', 'Wälder', 'Walder', 'Walds'], ['Bild', 'Bilder', 'Bilde', 'Bilds'], ['Stern', 'Sterne', 'Sterns', 'Sterner'],
+  ['Lied', 'Lieder', 'Liede', 'Lieds'], ['Glas', 'Gläser', 'Glase', 'Glasen'], ['Nuss', 'Nüsse', 'Nusse', 'Nüsser'],
+  ['Kuh', 'Kühe', 'Kuhe', 'Kuhs'], ['Gras', 'Gräser', 'Grase', 'Grasen'],
+];
+
+export const PAST_HARD: [string, string, string, string][] = [
+  ['Ich fahre mit dem Bus.', 'Ich fuhr mit dem Bus.', 'Ich fahrte mit dem Bus.', 'Ich fahr mit dem Bus.'],
+  ['Er schreibt einen Brief.', 'Er schrieb einen Brief.', 'Er schreibte einen Brief.', 'Er schrub einen Brief.'],
+  ['Wir trinken Saft.', 'Wir tranken Saft.', 'Wir trinkten Saft.', 'Wir trunken Saft.'],
+  ['Sie kommt zu spät.', 'Sie kam zu spät.', 'Sie kommte zu spät.', 'Sie komm zu spät.'],
+  ['Der Vogel fliegt weg.', 'Der Vogel flog weg.', 'Der Vogel fliegte weg.', 'Der Vogel flug weg.'],
+  ['Ich nehme den Ball.', 'Ich nahm den Ball.', 'Ich nehmte den Ball.', 'Ich nohm den Ball.'],
+  ['Er hilft seinem Freund.', 'Er half seinem Freund.', 'Er helfte seinem Freund.', 'Er hilfte seinem Freund.'],
+];
+
+export const COMPOUNDS_HARD: [string, string, string, string, string][] = [
+  ['Geburt', 'Tag', 'Geburtstag', 'Taggeburt', 'Geburttag'],
+  ['Kinder', 'Garten', 'Kindergarten', 'Gartenkinder', 'Kindgarten'],
+  ['Sommer', 'Ferien', 'Sommerferien', 'Feriensommer', 'Sommerferrien'],
+  ['Tomaten', 'Suppe', 'Tomatensuppe', 'Suppetomaten', 'Tomatesuppe'],
+  ['Kranken', 'Haus', 'Krankenhaus', 'Hauskranken', 'Krankhausen'],
+  ['Zahn', 'Arzt', 'Zahnarzt', 'Arztzahn', 'Zähnearzt'],
+  ['Wasser', 'Melone', 'Wassermelone', 'Melonewasser', 'Wasserrmelone'],
+];
 
 /** [Nomen, Artikel] */
 export const ARTICLES: [string, 'der' | 'die' | 'das'][] = [
@@ -149,14 +187,16 @@ export const SPELLING_RULES: [string, string, string, string, string][] = [
 ];
 
 export function makeGerman(rng: Rng): Riddle {
-  const t = Math.floor(rng() * 9);
+  // Stufe 1–2: Artikel, Zusammensetzen, Silben, Satzzeichen, Reime. Höher kommen Mehrzahl, Wortart, Vergangenheit und Großschreibung dazu.
+  const types = level <= 2 ? [0, 0, 4, 6, 7, 8] : level <= 4 ? [0, 1, 2, 3, 4, 5, 6, 7, 8] : [1, 2, 3, 5, 8, 1, 3, 4, 0];
+  const t = types[Math.floor(rng() * types.length)];
   switch (t) {
     case 0: {
-      const [w, art] = pick(rng, ARTICLES);
+      const [w, art] = byLevel(rng, ARTICLES, ARTICLES_HARD);
       return mc('german', rng, `Welcher Artikel passt? ___ ${w}`, art, ['der', 'die', 'das'].filter((x) => x !== art), `Es heißt: ${art} ${w}.`);
     }
     case 1: {
-      const [s, r, a, b] = pick(rng, PLURALS);
+      const [s, r, a, b] = byLevel(rng, PLURALS, PLURALS_HARD);
       return mc('german', rng, `Mehrzahl von „${s}“?`, r, [a, b], `Eine Mehrzahl: ${r}.`);
     }
     case 2: {
@@ -164,11 +204,11 @@ export function makeGerman(rng: Rng): Riddle {
       return mc('german', rng, `Welche Wortart ist „${w}“?`, c, ['Nomen', 'Verb', 'Adjektiv'].filter((x) => x !== c), `${w} ist ein ${c}${c === 'Nomen' ? ' (Namenwort)' : c === 'Verb' ? ' (Tunwort)' : ' (Wiewort)'}.`);
     }
     case 3: {
-      const [p, r, a, b] = pick(rng, PAST);
+      const [p, r, a, b] = byLevel(rng, PAST, PAST_HARD);
       return mc('german', rng, `Gestern war es so: „${p}“`, r, [a, b], `Richtig: ${r}`);
     }
     case 4: {
-      const [a, b, r, x, y] = pick(rng, COMPOUNDS);
+      const [a, b, r, x, y] = byLevel(rng, COMPOUNDS, COMPOUNDS_HARD);
       return mc('german', rng, `${a} + ${b} = ?`, r, [x, y], `${a} und ${b} ergeben: ${r}.`);
     }
     case 5: {
