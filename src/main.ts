@@ -342,7 +342,8 @@ function hud(): void {
   press('a-act', 'action');
   press('a-pick', 'pickup');
   let run = false;
-  document.getElementById('a-run')!.addEventListener('click', (e) => {
+  document.getElementById('a-run')!.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     run = !run;
     input.setTouchRun(run);
     (e.currentTarget as HTMLElement).classList.toggle('on', run);
