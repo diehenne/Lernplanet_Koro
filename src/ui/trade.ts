@@ -40,24 +40,40 @@ export function openTrade(spec: TradeSpec): void {
     void speak(text);
   };
 
+  // Auf kleinen Bildschirmen blättern statt scrollen
+  let page = 0;
+  const PER = 6;
+  const small = (): boolean => innerHeight <= 520 || innerWidth <= 600;
+  const pager = (rows: string[]): string => {
+    if (!small() || rows.length <= PER) { page = 0; return `<div class="goods">${rows.join('')}</div>`; }
+    const pages = Math.ceil(rows.length / PER);
+    page = Math.min(page, pages - 1);
+    return `<div class="goods">${rows.slice(page * PER, page * PER + PER).join('')}</div>
+      <div class="pager"><button class="alt" id="pg-prev" ${page === 0 ? 'disabled' : ''}>◀</button><span>${page + 1}/${pages}</span><button class="alt" id="pg-next" ${page >= pages - 1 ? 'disabled' : ''}>▶</button></div>`;
+  };
+  const bindPager = (again: () => void): void => {
+    document.getElementById('pg-prev')?.addEventListener('click', () => { page--; again(); });
+    document.getElementById('pg-next')?.addEventListener('click', () => { page++; again(); });
+  };
+
   const tabs = (): string =>
     `<div class="tabs"><button class="${mode === 'buy' ? '' : 'alt'}" id="t-buy">${de.trade.buy}</button>
      <button class="${mode === 'sell' ? '' : 'alt'}" id="t-sell">${de.trade.sell}</button>
      <button class="${mode === 'swap' ? '' : 'alt'}" id="t-swap">${de.trade.swap}</button></div>`;
   const bindTabs = (): void => {
-    document.getElementById('t-buy')!.addEventListener('click', () => { mode = 'buy'; msg = ''; pickBuy(); });
-    document.getElementById('t-sell')!.addEventListener('click', () => { mode = 'sell'; msg = ''; pickSell(); });
-    document.getElementById('t-swap')!.addEventListener('click', () => { mode = 'swap'; msg = ''; pickSwap(); });
+    document.getElementById('t-buy')!.addEventListener('click', () => { mode = 'buy'; msg = ''; page = 0; pickBuy(); });
+    document.getElementById('t-sell')!.addEventListener('click', () => { mode = 'sell'; msg = ''; page = 0; pickSell(); });
+    document.getElementById('t-swap')!.addEventListener('click', () => { mode = 'swap'; msg = ''; page = 0; pickSwap(); });
   };
 
   // ------------------------------------------------------------ Kaufen
 
   const pickBuy = (): void => {
     const rows = ITEMS.filter((i) => i.stock)
-      .map((i) => `<button class="row ${balance(p) < i.price ? 'poor' : ''}" data-id="${i.id}"><span class="e">${i.emoji}</span><span class="n">${i.name}</span><span>${GEM} ${i.price}</span></button>`)
-      .join('');
-    frame(`${tabs()}<p><small>${de.trade.pickItem}</small></p><div class="goods">${rows}</div><button class="alt" id="close">${de.close}</button>`);
+      .map((i) => `<button class="row ${balance(p) < i.price ? 'poor' : ''}" data-id="${i.id}"><span class="e">${i.emoji}</span><span class="n">${i.name}</span><span>${GEM} ${i.price}</span></button>`);
+    frame(`${tabs()}<p><small>${de.trade.pickItem}</small></p>${pager(rows)}<button class="alt" id="close">${de.close}</button>`);
     bindTabs();
+    bindPager(pickBuy);
     document.getElementById('close')!.addEventListener('click', close);
     root.querySelectorAll<HTMLElement>('.goods button').forEach((b) =>
       b.addEventListener('click', () => {
@@ -149,10 +165,10 @@ export function openTrade(spec: TradeSpec): void {
       .map((i) => {
         const have = (p.inventory[i.id] ?? 0) - inUse(p, i.id);
         return `<button class="row" data-id="${i.id}"><span class="e">${i.emoji}</span><span class="n">${i.name} ×${have}</span><span>${de.trade.unit} ${GEM} ${sellPrice(i.id)}</span></button>`;
-      })
-      .join('');
-    frame(`${tabs()}<p><small>${rows ? de.trade.pickSell : de.trade.nothingToSell}</small></p><div class="goods">${rows}</div><button class="alt" id="close">${de.close}</button>`);
+      });
+    frame(`${tabs()}<p><small>${rows.length ? de.trade.pickSell : de.trade.nothingToSell}</small></p>${pager(rows)}<button class="alt" id="close">${de.close}</button>`);
     bindTabs();
+    bindPager(pickSell);
     document.getElementById('close')!.addEventListener('click', close);
     root.querySelectorAll<HTMLElement>('.goods button').forEach((b) =>
       b.addEventListener('click', () => {
@@ -211,9 +227,10 @@ export function openTrade(spec: TradeSpec): void {
     const up = EXCHANGES.filter((e) => canExchange(p, e.to));
     const row = (give: number[], get: number[], dir: string): string =>
       `<button class="row swap" data-g="${give.join(',')}" data-t="${get.join(',')}"><span class="n">${coinChips(give)}</span><span>➜</span><span class="n">${coinChips(get)}</span></button>`;
-    const rows = [...down.map((e) => row([e.from], e.to, 'down')), ...up.map((e) => row(e.to, [e.from], 'up'))].join('');
-    frame(`${tabs()}<p><small>${rows ? de.trade.swapHint : de.trade.nothingToSwap}</small></p><div class="goods">${rows}</div><button class="alt" id="close">${de.close}</button>`);
+    const rows = [...down.map((e) => row([e.from], e.to, 'down')), ...up.map((e) => row(e.to, [e.from], 'up'))];
+    frame(`${tabs()}<p><small>${rows.length ? de.trade.swapHint : de.trade.nothingToSwap}</small></p>${pager(rows)}<button class="alt" id="close">${de.close}</button>`);
     bindTabs();
+    bindPager(pickSwap);
     document.getElementById('close')!.addEventListener('click', close);
     root.querySelectorAll<HTMLElement>('.goods button').forEach((b) =>
       b.addEventListener('click', () => {

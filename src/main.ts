@@ -19,6 +19,7 @@ import { runEnglishRound, speakEnglish } from './ui/english';
 import { areaLevel } from './core/riddles';
 import { runSudoku } from './ui/sudoku';
 import { runWall } from './ui/wall';
+import { installFit } from './ui/fit';
 import type { RiddleKind } from './core/riddles';
 import { ENGLISH_KINDS } from './core/riddles';
 
@@ -28,6 +29,7 @@ const canvas = document.getElementById('scene') as HTMLCanvasElement;
 ui.innerHTML = `<div id="screen"></div><div id="overlay"></div><div id="toast" class="hidden"></div><div id="hurt"></div><canvas id="minimap" width="120" height="120"></canvas>
   <div id="joystick"><div class="knob"></div></div>`;
 const screen = document.getElementById('screen')!;
+installFit();
 const overlay = document.getElementById('overlay')!;
 const toastEl = document.getElementById('toast')!;
 const GEM = '<span class="gem"></span>';

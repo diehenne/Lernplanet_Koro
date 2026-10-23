@@ -65,11 +65,13 @@ export function runSudoku(spec: SudokuUiSpec): void {
     const ring = document.getElementById('numring')!;
     const cell = cellEls()[sel];
     if (sel < 0 || !cell || given[sel] || done) { ring.innerHTML = ''; ring.style.display = 'none'; return; }
-    const wrap = ring.parentElement!.getBoundingClientRect();
+    const wrapEl = ring.parentElement!;
+    const wrap = wrapEl.getBoundingClientRect();
     const r = cell.getBoundingClientRect();
     ring.style.display = 'block';
-    ring.style.left = `${r.left - wrap.left + r.width / 2}px`;
-    ring.style.top = `${r.top - wrap.top + r.height / 2}px`;
+    const k = wrapEl.offsetWidth ? wrap.width / wrapEl.offsetWidth : 1;
+    ring.style.left = `${(r.left - wrap.left + r.width / 2) / k}px`;
+    ring.style.top = `${(r.top - wrap.top + r.height / 2) / k}px`;
     const items = [...Array.from({ length: n }, (_, k) => String(k + 1)), '⌫'];
     ring.innerHTML = items.map((t, k) => {
       const a = (k / items.length) * Math.PI * 2 - Math.PI / 2;

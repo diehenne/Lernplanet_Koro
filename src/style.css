@@ -220,6 +220,12 @@ button.danger { background: #e0483e; box-shadow: 0 5px 0 #a02820; color: #fff; }
 }
 .panel > #close, .panel > #abort, .panel > #ok, .panel > #resume, .panel > #back { display: block; margin-left: auto; margin-right: auto; }
 
+.panel[data-fit] > #close, .panel[data-fit] > #abort, .panel[data-fit] > #ok, .panel[data-fit] > #resume, .panel[data-fit] > #back,
+.panel[data-fit] > div:has(> #abort, > #close, > #ok, > #resume, > #back, > #go), .panel[data-fit] > p:has(> #ok, > #close) {
+  position: static; box-shadow: none; padding: 0; background: none;
+}
+#overlay:has(.panel.center) ~ #minimap { display: none !important; }
+
 .copy { margin: 10px 0 0; font-size: 13px; opacity: .6; text-align: center; }
 
 /* Handy quer (niedriger Bildschirm) */
@@ -281,3 +287,12 @@ button.danger { background: #e0483e; box-shadow: 0 5px 0 #a02820; color: #fff; }
 .region.mul .go, .coin.c10 { color: var(--ink); text-shadow: none; }
 
 button.chip { font-family: inherit; min-width: 0; min-height: 0; margin: 0; color: var(--ink); background: var(--cream); box-shadow: none; }
+
+.pager { display: flex; justify-content: center; align-items: center; gap: 10px; font-weight: bold; }
+.pager button { min-width: 48px; }
+@media (max-height: 520px), (max-width: 600px) {
+  .goods { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .goods .row { grid-template-columns: 32px 1fr auto; font-size: 16px; min-height: 40px; padding: 2px 8px; margin: 0; }
+  .e { font-size: 24px; } .e.big { font-size: 34px; }
+  .trade p { margin: 4px 0; }
+}
