@@ -36,7 +36,7 @@ const KEYPAD_FROM_LEVEL = 3;
  * selbst ein. Fehler werden nie bestraft: der Lösungsweg wird erklärt, dann darf man es nochmal versuchen.
  */
 export function runRound(spec: RoundSpec): void {
-  const gap = spec.variant === 'gap';
+  const gapOnly = spec.variant === 'gap';
   let index = 0;
   let stars = 0;
   let earned = 0;
@@ -60,6 +60,8 @@ export function runRound(spec: RoundSpec): void {
     if (index >= ROUND_LENGTH) return finish();
     index++;
     const task = nextTask(spec.profile, spec.op);
+    // In normalen Runden gelegentlich „Welche Zahl fehlt?“ zur Abwechslung (ab Stufe 2)
+    const gap = gapOnly || (task.level >= 2 && Math.random() < 0.3);
     const target = gap ? task.b : task.answer;
     const useKeypad = task.level >= KEYPAD_FROM_LEVEL;
     const title = gap ? `🌉 ${de.gapTitle}` : `🧮 ${de.calcTitle}`;
