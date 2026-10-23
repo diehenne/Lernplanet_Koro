@@ -70,8 +70,12 @@ export function runSudoku(spec: SudokuUiSpec): void {
     const r = cell.getBoundingClientRect();
     ring.style.display = 'block';
     const k = wrapEl.offsetWidth ? wrap.width / wrapEl.offsetWidth : 1;
-    ring.style.left = `${(r.left - wrap.left + r.width / 2) / k}px`;
-    ring.style.top = `${(r.top - wrap.top + r.height / 2) / k}px`;
+    const reach = 90 * k;
+    const clamp = (v: number, max: number): number => (max < 2 * reach ? max / 2 : Math.min(Math.max(v, reach), max - reach));
+    const cx = clamp(r.left + r.width / 2, innerWidth);
+    const cy = clamp(r.top + r.height / 2, innerHeight);
+    ring.style.left = `${(cx - wrap.left) / k}px`;
+    ring.style.top = `${(cy - wrap.top) / k}px`;
     const items = [...Array.from({ length: n }, (_, k) => String(k + 1)), '⌫'];
     ring.innerHTML = items.map((t, k) => {
       const a = (k / items.length) * Math.PI * 2 - Math.PI / 2;
