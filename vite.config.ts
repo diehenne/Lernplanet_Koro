@@ -37,6 +37,8 @@ function classicScript(): Plugin {
       if (!m) return;
       h = h.replace(m[0], '');
       const code = m[1].replace(/<\/script/gi, '<\\/script');
+      const diag = `<script>window.onerror=function(m,u,l,c){var d=document.createElement('pre');d.style.cssText='position:fixed;left:0;top:0;right:0;z-index:99999;background:#fff;color:#c00;padding:12px;white-space:pre-wrap;font:14px monospace';d.textContent='Fehler: '+m+' ('+l+':'+c+')';document.body.appendChild(d)};</script>`;
+      h = h.replace('<body>', () => '<body>' + diag);
       h = h.replace('</body>', () => `<script>${code}</script>\n</body>`);
       writeFileSync(f, h);
       renameSync(f, 'dist-single/lernplanet.html');
@@ -53,6 +55,7 @@ export default defineConfig({
   build: SINGLE
     ? {
         outDir: 'dist-single',
+        target: 'es2019',
         assetsInlineLimit: 100000000,
         chunkSizeWarningLimit: 100000,
         rollupOptions: { output: { format: 'iife', inlineDynamicImports: true } },
