@@ -215,6 +215,8 @@ function createGamepadNav(emit: (c: Cmd) => void) {
       if (b(14)) ax = -1; else if (b(15)) ax = 1;
       if (b(12)) ay = -1; else if (b(13)) ay = 1;
 
+      if (ax || ay) window.dispatchEvent(new CustomEvent('padpress'));
+
       // Create oder L3: Ton (Sprache und Musik) gemeinsam an/aus (überall)
       const anyNow = gp.buttons.some((x) => x.pressed);
       if (anyNow && !anyDown) window.dispatchEvent(new CustomEvent('padpress'));

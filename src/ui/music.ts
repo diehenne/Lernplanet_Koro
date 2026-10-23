@@ -572,7 +572,7 @@ const THEMES: Record<Theme, ThemeDef> = {
 function tick(): void {
   const c = ctx!;
   // Controller-Tasten gelten nicht bei jedem Browser als Klick: immer wieder versuchen
-  if (enabled && !hidden && c.state !== 'running') void c.resume();
+  if (enabled && !hidden && !idlePaused && c.state !== 'running') void c.resume();
   while (nextBarTime < c.currentTime + 1.2) {
     if (wanted !== current) {
       current = wanted;
@@ -617,6 +617,26 @@ window.addEventListener('pagehide', () => onVisibility(true));
 window.addEventListener('pageshow', () => onVisibility(document.visibilityState === 'hidden'));
 window.addEventListener('blur', () => onVisibility(true));
 window.addEventListener('focus', () => onVisibility(false));
+
+/** Bildschirm aus oder App im Hintergrund melden sich nicht immer: ohne Eingabe wird der Ton angehalten. */
+const IDLE_MS = 45_000;
+let lastInput = Date.now();
+let idlePaused = false;
+function activity(): void {
+  lastInput = Date.now();
+  if (idlePaused) {
+    idlePaused = false;
+    if (ctx && enabled && !hidden) void ctx.resume();
+  }
+}
+for (const ev of ['pointerdown', 'pointermove', 'touchstart', 'keydown', 'padpress']) {
+  window.addEventListener(ev, activity, { passive: true });
+}
+window.setInterval(() => {
+  if (!ctx || idlePaused || Date.now() - lastInput < IDLE_MS) return;
+  idlePaused = true;
+  void ctx.suspend();
+}, 5000);
 
 export function setMusic(on: boolean): void {
   enabled = on;
