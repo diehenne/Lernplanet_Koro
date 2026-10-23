@@ -370,6 +370,7 @@ export class World {
     this.renderer.setSize(w, h, false);
     this.post?.resize(w, h);
     this.camera.aspect = w / h;
+    this.camera.fov = w < h ? 50 + (1 - w / h) * 45 : 50;
     this.camera.updateProjectionMatrix();
   }
 
