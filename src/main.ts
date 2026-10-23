@@ -306,7 +306,7 @@ const GFX: Record<string, string> = { low: '🔋', med: '🌤️', high: '✨' }
 function hud(): void {
   const p = current!;
   screen.innerHTML = `<div class="hud"><span><button class="chip" id="who" title="${de.whoPlays}">${p.avatar} ${p.name}</button>
-    <span class="chip" id="region"></span></span>
+    <button class="chip" id="region" title="${de.map.travel}"></button></span>
     <span><span class="chip" id="rupees">${GEM} ${balance(p)}</span><span class="chip" id="stars">⭐ ${p.stars}/${MAX_STARS}</span>
     <span class="chip" id="tool" title="${de.inv.inHand}"></span>
     <button class="alt" id="bag" title="${de.inv.title}">🎒<span class="g tri">△</span></button>
@@ -331,6 +331,7 @@ function hud(): void {
     (e.currentTarget as HTMLElement).textContent = GFX[next];
   });
   document.getElementById('who')!.addEventListener('click', () => { save(); showStart(); });
+  document.getElementById('region')!.addEventListener('click', () => { save(); showRegions(); });
   document.getElementById('minimap')!.addEventListener('click', () => command('map'));
   document.getElementById('bag')!.addEventListener('click', () => command('inventory'));
   const press = (id: string, c: Cmd): void => {
