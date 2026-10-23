@@ -3,6 +3,9 @@
 Browserbasiertes 3D-Lernspiel (7–10 Jahre) für Plus, Minus, Mal und Geteilt.
 Konzept und Spielregeln: [KONZEPT.md](./KONZEPT.md).
 
+## Jetzt spielen
+👉 **https://diehenne.github.io/Lernplanet_Koro/** – direkt im Browser (iPad, iPhone, Android, PC), ohne Installation.
+
 ## Start
 ```
 npm install
