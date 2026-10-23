@@ -12,6 +12,11 @@ export function setSpeech(on: boolean): void {
   if (!on) stop();
 }
 
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') stop();
+});
+window.addEventListener('pagehide', stop);
+
 export function speechOn(): boolean {
   return enabled;
 }
