@@ -35,8 +35,8 @@ export class PostFX {
   private ratio: number;
 
   constructor(private renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
-    const saved = localStorage.getItem('koro.quality') as Quality | null;
-    this.quality = saved === 'low' || saved === 'med' || saved === 'high' ? saved : 'high';
+    const saved = localStorage.getItem('koro.quality2') as Quality | null;
+    this.quality = saved === 'low' || saved === 'med' || saved === 'high' ? saved : 'med';
     this.ratio = Math.min(devicePixelRatio, 2);
     const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
     this.composer = new EffectComposer(renderer, target);
@@ -55,7 +55,7 @@ export class PostFX {
 
   setQuality(q: Quality): void {
     this.quality = q;
-    localStorage.setItem('koro.quality', q);
+    localStorage.setItem('koro.quality2', q);
     this.apply();
   }
 
