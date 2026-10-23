@@ -742,3 +742,14 @@ document.addEventListener('touchmove', (e) => {
   if (!(e.target as HTMLElement).closest?.('.panel')) e.preventDefault();
 }, { passive: false });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+// Möglichst Vollbild (wo der Browser es erlaubt), damit Leisten nicht bei jedem Tippen einblenden
+let fsTried = false;
+document.addEventListener('pointerdown', () => {
+  if (fsTried) return;
+  fsTried = true;
+  const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
+  try {
+    void (el.requestFullscreen?.() ?? el.webkitRequestFullscreen?.())?.catch(() => {});
+  } catch { /* nicht erlaubt */ }
+});
